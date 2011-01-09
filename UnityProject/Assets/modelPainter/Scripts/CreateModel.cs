@@ -75,6 +75,8 @@ public class CreateModel : MonoBehaviour
             .GetComponent<zzButton>();
         lReadImageButton.clickCall = OnOpenImageClick;
 
+        Time.timeScale = 0.0f;
+
         //fileBrowserDialogObject = new GameObject("fileBrowserDialog");
         //fileBrowserDialogObject.transform.parent = transform.parent;
     }
@@ -117,8 +119,10 @@ public class CreateModel : MonoBehaviour
         if (modelImage)
         {
             flatModelPainter = GetComponent<zzFlatModelPainter>();
-            if (flatModelPainter.models)
-                Destroy(flatModelPainter.models);
+            foreach (var lObject in modelObjectList)
+            {
+                Destroy(lObject);
+            }
             flatModelPainter.clear();
             flatModelPainter.picture = modelImage;
             flatModelPainter.thickness = 1.0f;
@@ -128,6 +132,7 @@ public class CreateModel : MonoBehaviour
     }
 
     zzCoroutineTimer drawTimer;
+    public GameObject[] modelObjectList = new GameObject[0];
 
     void stepDrawModel()
     {
@@ -138,12 +143,31 @@ public class CreateModel : MonoBehaviour
             lModelsTransform.position = modelPosition.position;
             var lScale = getFitScale(flatModelPainter.modelsSize, modelMaxSize);
             lModelsTransform.localScale = new Vector3(lScale.x, lScale.y,1.0f);
+            GameObject[] lModelObjectList = new GameObject[lModelsTransform.childCount];
+            int i = 0;
             foreach (Transform lSub in lModelsTransform)
             {
+                var lGameObject = lSub.gameObject;
+                lModelObjectList[i] = lGameObject;
+                lGameObject.AddComponent<Rigidbody>();
+                lGameObject.AddComponent<zzObjectElement>();
+                lGameObject.AddComponent<zzEditableObject>();
                 lSub.Find("Render").GetComponent<MeshRenderer>().material = modelMaterial;
                 lSub.GetComponentInChildren<zzFlatMeshEdit>().resetUV();
+                ++i;
             }
+            foreach (var lObject in lModelObjectList)
+            {
+                lObject.transform.parent = null;
+            }
+            modelObjectList = lModelObjectList;
         }
+    }
+
+    public void    OnPlayButtonClick(object sender)
+    {
+        Time.timeScale = 1.0f;
+
     }
 
     Texture2D modelImage;
