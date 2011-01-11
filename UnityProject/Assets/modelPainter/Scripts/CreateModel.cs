@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 public class CreateModel : MonoBehaviour
 {
@@ -75,7 +76,7 @@ public class CreateModel : MonoBehaviour
             .GetComponent<zzButton>();
         lReadImageButton.clickCall = OnOpenImageClick;
 
-        Time.timeScale = 0.0f;
+        //Time.timeScale = 0.0f;
 
         //fileBrowserDialogObject = new GameObject("fileBrowserDialog");
         //fileBrowserDialogObject.transform.parent = transform.parent;
@@ -116,13 +117,10 @@ public class CreateModel : MonoBehaviour
 
     public void drawModel(object sender)
     {
-        if (modelImage)
+        if (modelImage && !drawTimer)
         {
             flatModelPainter = GetComponent<zzFlatModelPainter>();
-            foreach (var lObject in modelObjectList)
-            {
-                Destroy(lObject);
-            }
+
             flatModelPainter.clear();
             flatModelPainter.picture = modelImage;
             flatModelPainter.thickness = 1.0f;
@@ -134,6 +132,24 @@ public class CreateModel : MonoBehaviour
     zzCoroutineTimer drawTimer;
     public GameObject[] modelObjectList = new GameObject[0];
 
+    void clearModelObjects()
+    {
+        foreach (var lObject in modelObjectList)
+        {
+            Destroy(lObject);
+        }
+        modelObjectList = new GameObject[0];
+
+    }
+
+    void addModelObjects(GameObject[] pModelObjects)
+    {
+        var lNewList = new List<GameObject>(modelObjectList.Length + pModelObjects.Length);
+        lNewList.AddRange(modelObjectList);
+        lNewList.AddRange(pModelObjects);
+        modelObjectList = lNewList.ToArray();
+    }
+
     void stepDrawModel()
     {
         if (!flatModelPainter.doStep())
@@ -141,33 +157,101 @@ public class CreateModel : MonoBehaviour
             Destroy(drawTimer);
             var lModelsTransform = flatModelPainter.models.transform;
             lModelsTransform.position = modelPosition.position;
-            var lScale = getFitScale(flatModelPainter.modelsSize, modelMaxSize);
-            lModelsTransform.localScale = new Vector3(lScale.x, lScale.y,1.0f);
+            var lFitScale = getFitScale(flatModelPainter.modelsSize, modelMaxSize);
+            var lScale =  new Vector3(lFitScale.x, lFitScale.y,1.0f);
+            lModelsTransform.localScale = lScale;
             GameObject[] lModelObjectList = new GameObject[lModelsTransform.childCount];
             int i = 0;
             foreach (Transform lSub in lModelsTransform)
             {
                 var lGameObject = lSub.gameObject;
                 lModelObjectList[i] = lGameObject;
-                lGameObject.AddComponent<Rigidbody>();
+                lGameObject.AddComponent<Rigidbody>().isKinematic = !inPlaying;
                 lGameObject.AddComponent<zzObjectElement>();
                 lGameObject.AddComponent<zzEditableObject>();
-                lSub.Find("Render").GetComponent<MeshRenderer>().material = modelMaterial;
-                lSub.GetComponentInChildren<zzFlatMeshEdit>().resetUV();
+                var lRender = lSub.Find("Render").GetComponent<MeshRenderer>();
+                var lMeshFilter = lSub.Find("Render").GetComponent<MeshFilter>(); ;
+                var lPaintingMesh = lGameObject.AddComponent<PaintingMesh>();
+
+                lPaintingMesh.paintRenderer = lRender;
+                lPaintingMesh.mesh = lMeshFilter.mesh;
+                lPaintingMesh.pictureSize = flatModelPainter.modelsSize;
+
+                //useDefaultMaterial(lPaintingMesh);
+                useImageMaterial(lPaintingMesh);
+
+
+                //var lWorldScale = lRender.transform.lossyScale;
+                //var lExtraTextureScale = flatModelPainter.modelsSize;
+                //lExtraTextureScale.Scale(lFitScale);
+                //lPaintingMesh.extraTextureScale = lExtraTextureScale;
+
+                //lSub.GetComponentInChildren<zzFlatMeshEdit>().resetUV();
                 ++i;
             }
             foreach (var lObject in lModelObjectList)
             {
                 lObject.transform.parent = null;
             }
-            modelObjectList = lModelObjectList;
+            addModelObjects(lModelObjectList);
+            Destroy(flatModelPainter.models);
+            Destroy(drawTimer);
         }
     }
 
+    public void useDefaultMaterial(PaintingMesh pPaintingMesh)
+    {
+        var lMaterial = new Material(modelMaterial);
+        pPaintingMesh.sharedMaterial = modelMaterial;
+        pPaintingMesh.material = lMaterial;
+
+        var lWorldScale = pPaintingMesh.paintRenderer.transform.lossyScale;
+        var lExtraTextureScale = pPaintingMesh.pictureSize;
+        lExtraTextureScale.Scale(lWorldScale);
+        pPaintingMesh.extraTextureScale = lExtraTextureScale;
+    }
+
+    public void useImageMaterial(PaintingMesh pPaintingMesh)
+    {
+        var lMaterial = new Material(Shader.Find("Diffuse"));
+        lMaterial.mainTexture = modelImage;
+        pPaintingMesh.sharedMaterial = null;
+        pPaintingMesh.material = lMaterial;
+        pPaintingMesh.useCustomImage = true;
+
+    }
+
+    public bool inPlaying = false;
+
     public void    OnPlayButtonClick(object sender)
     {
-        Time.timeScale = 1.0f;
+        //Time.timeScale = 1.0f;
+        updateState(true);
+    }
 
+    void updateState(bool pIsPlay)
+    {
+        if (inPlaying == pIsPlay)
+            return;
+        inPlaying = pIsPlay;
+        bool lIsKinematic = !pIsPlay;
+        foreach (var lObject in modelObjectList)
+        {
+            var lRigidbody = lObject.GetComponent<Rigidbody>();
+            lRigidbody.isKinematic = lIsKinematic;
+            lRigidbody.WakeUp();
+        }
+
+    }
+
+    public void     OnPauseButtonClick(object sender)
+    {
+        updateState(false);
+    }
+
+    public void    OnClearButtonClick(object sender)
+    {
+        clearModelObjects();
     }
 
     Texture2D modelImage;
