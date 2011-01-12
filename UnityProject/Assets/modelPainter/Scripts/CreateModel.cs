@@ -117,15 +117,23 @@ public class CreateModel : MonoBehaviour
 
     public void drawModel(object sender)
     {
-        if (modelImage && !drawTimer)
+        if (nowPainterOutData!=null && !drawTimer)
         {
-            flatModelPainter = GetComponent<zzFlatModelPainter>();
+            if (nowPainterOutData.haveModelData)
+            {
+                createObject(nowPainterOutData);
+            }
+            else
+            {
+                flatModelPainter = GetComponent<zzFlatModelPainter>();
 
-            flatModelPainter.clear();
-            flatModelPainter.picture = modelImage;
-            flatModelPainter.thickness = 1.0f;
-            drawTimer = gameObject.AddComponent<zzCoroutineTimer>();
-            drawTimer.setImpFunction(stepDrawModel);
+                flatModelPainter.clear();
+                flatModelPainter.picture = nowPainterOutData.modelImage;
+                flatModelPainter.thickness = 1.0f;
+                drawTimer = gameObject.AddComponent<zzCoroutineTimer>();
+                drawTimer.setImpFunction(stepDrawModel);
+
+            }
         }
     }
 
@@ -148,6 +156,7 @@ public class CreateModel : MonoBehaviour
         lNewList.AddRange(modelObjectList);
         lNewList.AddRange(pModelObjects);
         modelObjectList = lNewList.ToArray();
+        updateObjectState(pModelObjects);
     }
 
     void stepDrawModel()
@@ -161,24 +170,29 @@ public class CreateModel : MonoBehaviour
             var lScale =  new Vector3(lFitScale.x, lFitScale.y,1.0f);
             lModelsTransform.localScale = lScale;
             GameObject[] lModelObjectList = new GameObject[lModelsTransform.childCount];
+            nowPainterOutData.paintingModelDatas = new PaintingModelData[lModelsTransform.childCount];
+            nowPainterOutData.transforms = new zzTransform[lModelsTransform.childCount];
             int i = 0;
             foreach (Transform lSub in lModelsTransform)
             {
                 var lGameObject = lSub.gameObject;
                 lModelObjectList[i] = lGameObject;
-                lGameObject.AddComponent<Rigidbody>().isKinematic = !inPlaying;
+                lGameObject.AddComponent<Rigidbody>();
                 lGameObject.AddComponent<zzObjectElement>();
                 lGameObject.AddComponent<zzEditableObject>();
-                var lRender = lSub.Find("Render").GetComponent<MeshRenderer>();
-                var lMeshFilter = lSub.Find("Render").GetComponent<MeshFilter>(); ;
                 var lPaintingMesh = lGameObject.AddComponent<PaintingMesh>();
+                var lRender = lSub.Find("Render").GetComponent<MeshRenderer>();
 
                 lPaintingMesh.paintRenderer = lRender;
-                lPaintingMesh.mesh = lMeshFilter.mesh;
-                lPaintingMesh.pictureSize = flatModelPainter.modelsSize;
+                //lPaintingMesh.pictureSize = flatModelPainter.modelsSize;
+                lPaintingMesh.modelData = PaintingModelData
+                    .createData(lGameObject, flatModelPainter.modelsSize);
 
                 //useDefaultMaterial(lPaintingMesh);
                 useImageMaterial(lPaintingMesh);
+
+                nowPainterOutData.paintingModelDatas[i] = lPaintingMesh.modelData;
+                nowPainterOutData.transforms[i] = new zzTransform(lSub);
 
 
                 //var lWorldScale = lRender.transform.lossyScale;
@@ -206,18 +220,14 @@ public class CreateModel : MonoBehaviour
         pPaintingMesh.material = lMaterial;
 
         var lWorldScale = pPaintingMesh.paintRenderer.transform.lossyScale;
-        var lExtraTextureScale = pPaintingMesh.pictureSize;
+        var lExtraTextureScale = pPaintingMesh.modelData.pictureSize;
         lExtraTextureScale.Scale(lWorldScale);
         pPaintingMesh.extraTextureScale = lExtraTextureScale;
     }
 
     public void useImageMaterial(PaintingMesh pPaintingMesh)
     {
-        var lMaterial = new Material(Shader.Find("Diffuse"));
-        lMaterial.mainTexture = modelImage;
-        pPaintingMesh.sharedMaterial = null;
-        pPaintingMesh.material = lMaterial;
-        pPaintingMesh.useCustomImage = true;
+        pPaintingMesh.useImageMaterial(nowPainterOutData.modelImage);
 
     }
 
@@ -229,18 +239,32 @@ public class CreateModel : MonoBehaviour
         updateState(true);
     }
 
+    void updateObjectState(GameObject[] pObjectList)
+    {
+        foreach (var lObject in pObjectList)
+        {
+            updateObjectState(lObject);
+        }
+
+    }
+
+    void updateObjectState(GameObject pObject)
+    {
+        bool lIsKinematic = !inPlaying;
+        var lRigidbody = pObject.GetComponent<Rigidbody>();
+        lRigidbody.isKinematic = lIsKinematic;
+        if (lIsKinematic)
+            lRigidbody.WakeUp();
+
+    }
+
     void updateState(bool pIsPlay)
     {
         if (inPlaying == pIsPlay)
             return;
         inPlaying = pIsPlay;
         bool lIsKinematic = !pIsPlay;
-        foreach (var lObject in modelObjectList)
-        {
-            var lRigidbody = lObject.GetComponent<Rigidbody>();
-            lRigidbody.isKinematic = lIsKinematic;
-            lRigidbody.WakeUp();
-        }
+        updateObjectState(modelObjectList);
 
     }
 
@@ -254,22 +278,225 @@ public class CreateModel : MonoBehaviour
         clearModelObjects();
     }
 
-    Texture2D modelImage;
+
+    class PainterOutData
+    {
+        public Texture2D modelImage;
+        public PaintingModelData[] paintingModelDatas;
+        public zzTransform[] transforms;
+
+        public bool haveModelData
+        {
+            get{ return paintingModelDatas!=null ;}
+        }
+    }
+
+    Dictionary<string, PainterOutData> imgPathToData = new Dictionary<string,PainterOutData>();
+    PainterOutData nowPainterOutData;
 
     void OnReadImage(zzInterfaceGUI pGUI)
     {
+        //Texture2D lImage;
+        //if (imgPathToData.ContainsValue)
+        //{
+        //}
+        //lastLocation = fileBrowserDialog.selectedLocation;
+        //zzInterfaceGUI lImageUI = UIMap.getObject("imageUI").GetComponent<zzInterfaceGUI>();
+        //lImage = new Texture2D(4, 4, TextureFormat.ARGB32,false);
+        
+        //using( var lImageFile = new FileStream(fileBrowserDialog.selectedLocation, FileMode.Open) )
+        //{
+        //    BinaryReader lBinaryReader = new BinaryReader(lImageFile);
+        //    lImage.LoadImage(lBinaryReader.ReadBytes((int)lImageFile.Length));
+
+        //}
+        //sceneImageUI.image = lImage;
+        //modelImage = lImage;
         lastLocation = fileBrowserDialog.selectedLocation;
-        zzInterfaceGUI lImageUI = UIMap.getObject("imageUI").GetComponent<zzInterfaceGUI>();
-        Texture2D lImage = new Texture2D(4, 4, TextureFormat.ARGB32,false);
-        FileStream lImageFile = new FileStream(fileBrowserDialog.selectedLocation, FileMode.Open);
-        using( BinaryReader lBinaryReader = new BinaryReader(lImageFile) )
+        readImage(lastLocation);
+
+    }
+
+    void readImage(string pPath)
+    {
+        FileInfo lFileInfo = new FileInfo(pPath);
+        if (imgPathToData.ContainsKey(lFileInfo.ToString()))
         {
-            lImage.LoadImage(lBinaryReader.ReadBytes((int)lImageFile.Length));
+            nowPainterOutData = imgPathToData[lFileInfo.ToString()];
+        }
+        else
+        {
+            Texture2D lImage = new Texture2D(4, 4, TextureFormat.ARGB32, false);
+
+            using (var lImageFile = new FileStream(fileBrowserDialog.selectedLocation, FileMode.Open))
+            {
+                BinaryReader lBinaryReader = new BinaryReader(lImageFile);
+                lImage.LoadImage(lBinaryReader.ReadBytes((int)lImageFile.Length));
+
+            }
+            nowPainterOutData = new PainterOutData();
+            nowPainterOutData.modelImage = lImage;
+            imgPathToData[lFileInfo.ToString()] = nowPainterOutData;
 
         }
-        sceneImageUI.image = lImage;
-        modelImage = lImage;
-        //lImageUI.setImage(lImage);
+        sceneImageUI.image = nowPainterOutData.modelImage;
+
+    }
+
+    public string saveName = "temp";
+
+    [ContextMenu("SaveModel")]
+    void saveModel()
+    {
+        saveModel(GameConfig.Singleton.ModelDir + "/" + saveName);
+    }
+
+    [ContextMenu("ReadModel")]
+    void readModel()
+    {
+        readGroup(GameConfig.Singleton.ModelDir + "/" + saveName);
+    }
+
+    static string groupFileName = "ModelGroup.txt";
+
+    [ContextMenu("Model IO Test")]
+    void modelIOTest()
+    {
+        saveModel();
+
+    }
+
+    void saveModel(string pName)
+    {
+        if (!Directory.Exists(pName))
+            Directory.CreateDirectory(pName);
+
+        //确定资源共用关系,定义唯一值
+        var lTextures = new Dictionary<Texture2D, string>();
+        var lPaintingModelData = new Dictionary<PaintingModelData, string>();
+        foreach (var lModelObject in modelObjectList)
+        {
+            var lPaintingMesh =  lModelObject.GetComponent<PaintingMesh>();
+            var lTexture2D = lPaintingMesh.material.mainTexture as Texture2D;
+            if (!lTextures.ContainsKey(lTexture2D))
+                lTextures[lTexture2D] = System.Guid.NewGuid().ToString();
+
+            if (!lPaintingModelData.ContainsKey(lPaintingMesh.modelData))
+                lPaintingModelData[lPaintingMesh.modelData]
+                    = System.Guid.NewGuid().ToString();
+        }
+
+        //保存图片
+        foreach (var lImgSave in lTextures)
+        {
+            using (var lImageFile = new FileStream(pName + "/" + lImgSave.Value + ".png",
+                FileMode.Create))
+            {
+                BinaryWriter lWriter = new BinaryWriter(lImageFile);
+                lWriter.Write(lImgSave.Key.EncodeToPNG());
+            }
+        }
+
+        //保存模型
+        foreach (var lModelDataSave in lPaintingModelData)
+        {
+            using (var lImageFile = new FileStream(pName + "/" + lModelDataSave.Value + ".pmb",
+                FileMode.Create))
+            {
+                BinaryWriter lWriter = new BinaryWriter(lImageFile);
+                lWriter.Write(lModelDataSave.Key.serializeToString());
+            }
+        }
+
+        //保存场景
+        {
+            Hashtable lGroupData = new Hashtable();
+            ArrayList lObjectList = new ArrayList(modelObjectList.Length);
+            foreach (var lModelObject in modelObjectList)
+            {
+                Transform lTransform = lModelObject.transform;
+                var lPaintingMesh = lModelObject.GetComponent<PaintingMesh>();
+                Hashtable lObjectData = new Hashtable();
+                lObjectData["modelData"] = lPaintingModelData[lPaintingMesh.modelData];
+                lObjectData["customImage"]
+                    = lTextures[lPaintingMesh.material.mainTexture as Texture2D];
+                lObjectData["position"] = lTransform.position;
+                lObjectData["rotation"] = lTransform.rotation;
+                lObjectData["scale"] = lTransform.localScale;
+                lObjectList.Add(lObjectData);
+            }
+            lGroupData["objectList"] = lObjectList;
+            using (var lGroupFile = new FileStream(pName + "/" + groupFileName,
+                FileMode.Create))
+            {
+                BinaryWriter lWriter = new BinaryWriter(lGroupFile);
+                lWriter.Write(zzSerializeString.Singleton.pack(lGroupData));
+            }
+
+        }
+
+    }
+
+    GameResourceManager resourceManager = new GameResourceManager();
+
+    void    readGroup(string pPath)
+    {
+        resourceManager.scanDirectory(pPath);
+        string pStringData;
+        using (var lGroupFile = new FileStream(pPath + "/" + groupFileName,
+            FileMode.Open))
+        {
+            BinaryReader lReader = new BinaryReader(lGroupFile);
+            pStringData = lReader.ReadString();
+        }
+        readGroupFromTable((Hashtable)zzSerializeString
+            .Singleton.unpackToData(pStringData));
+    }
+
+    void    readGroupFromTable(Hashtable pData )
+    {
+        ArrayList lObjectList = (ArrayList)pData["objectList"];
+        List<GameObject> lModelList = new List<GameObject>();
+
+        int i = 0;
+        foreach (Hashtable lObjectData in lObjectList)
+        {
+            GameObject lGameObject = new GameObject("readMoedl"+i);
+            Transform lTransform = lGameObject.transform;
+            string lModelDataName = (string)lObjectData["modelData"];
+            string lCustomImageName = (string)lObjectData["customImage"];
+            lTransform.position = (Vector3)lObjectData["position"];
+            lTransform.rotation = (Quaternion)lObjectData["rotation"];
+            lTransform.localScale = (Vector3)lObjectData["scale"];
+            var lPaintingModelData = resourceManager.getModelFromGuid(lModelDataName);
+            PaintingMesh lPaintingMesh = PaintingMesh.create(lGameObject, lPaintingModelData);
+            lPaintingMesh.useImageMaterial(resourceManager.getImageFromGuid(lCustomImageName));
+
+            lModelList.Add(lGameObject);
+            ++i;
+            //addModelObjects()
+            //lGameObject.GetComponent<Rigidbody>().isKinematic = !inPlaying;
+
+        }
+
+        addModelObjects(lModelList.ToArray());
+    }
+
+    void createObject(PainterOutData pPainterOutData)
+    {
+        List<GameObject> lModelList = new List<GameObject>();
+
+        for (int i=0;i<pPainterOutData.paintingModelDatas.Length;++i)
+        {
+            GameObject lGameObject = new GameObject();
+            lModelList.Add(lGameObject);
+            var lPaintingMesh
+                = PaintingMesh.create(lGameObject,pPainterOutData.paintingModelDatas[i]);
+            lPaintingMesh.useImageMaterial(pPainterOutData.modelImage);
+            pPainterOutData.transforms[i].setToTransform(lGameObject.transform);
+        }
+        addModelObjects(lModelList.ToArray());
+
     }
 
     // Update is called once per frame
