@@ -76,10 +76,26 @@ public class CreateModel : MonoBehaviour
             .GetComponent<zzButton>();
         lReadImageButton.clickCall = OnOpenImageClick;
 
+        logFile = new FileStream(Application.dataPath + "/../modelPainter.log",FileMode.Create);
+        logWriter = new StreamWriter(logFile);
+        logWriter.AutoFlush = true;
+        Application.RegisterLogCallback(HandleLog);
+
         //Time.timeScale = 0.0f;
 
         //fileBrowserDialogObject = new GameObject("fileBrowserDialog");
         //fileBrowserDialogObject.transform.parent = transform.parent;
+    }
+
+    FileStream logFile;
+    StreamWriter logWriter;
+
+    void HandleLog(string logString, string stackTrace, LogType pLogType)
+    {
+
+        string lLog = pLogType.ToString() + ": " + logString + "\n" + stackTrace + "\n";
+
+        logWriter.Write(lLog);
     }
 
     GameObject fileBrowserDialogObject;
@@ -121,6 +137,9 @@ public class CreateModel : MonoBehaviour
         {
             if (nowPainterOutData.haveModelData)
             {
+                createObject(nowPainterOutData);
+                createObject(nowPainterOutData);
+                createObject(nowPainterOutData);
                 createObject(nowPainterOutData);
             }
             else
@@ -351,6 +370,11 @@ public class CreateModel : MonoBehaviour
         saveModel(GameConfig.Singleton.ModelDir + "/" + saveName);
     }
 
+    public void OnTest(object sender)
+    {
+        readModel();
+    }
+
     [ContextMenu("ReadModel")]
     void readModel()
     {
@@ -465,12 +489,14 @@ public class CreateModel : MonoBehaviour
             Transform lTransform = lGameObject.transform;
             string lModelDataName = (string)lObjectData["modelData"];
             string lCustomImageName = (string)lObjectData["customImage"];
-            lTransform.position = (Vector3)lObjectData["position"];
-            lTransform.rotation = (Quaternion)lObjectData["rotation"];
-            lTransform.localScale = (Vector3)lObjectData["scale"];
             var lPaintingModelData = resourceManager.getModelFromGuid(lModelDataName);
             PaintingMesh lPaintingMesh = PaintingMesh.create(lGameObject, lPaintingModelData);
             lPaintingMesh.useImageMaterial(resourceManager.getImageFromGuid(lCustomImageName));
+
+            //先设置Transform,在增加凸碰撞模型时,有时会长生错误
+            lTransform.position = (Vector3)lObjectData["position"];
+            lTransform.rotation = (Quaternion)lObjectData["rotation"];
+            lTransform.localScale = (Vector3)lObjectData["scale"];
 
             lModelList.Add(lGameObject);
             ++i;

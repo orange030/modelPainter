@@ -4,6 +4,11 @@ using System.Collections;
 
 public class PaintingModelData
 {
+    public PaintingModelData()
+    {
+        Debug.Log("new PaintingModelData");
+    }
+
     public struct ModelData
     {
         public Vector3 localPosition;
@@ -152,7 +157,7 @@ public class PaintingMesh:MonoBehaviour
             lColliderObject.transform.parent = lTransform;
             var lMeshCollider = lColliderObject.AddComponent<MeshCollider>();
             lMeshCollider.convex = true;
-            lMeshCollider.mesh = lColliderMeshes.mesh;
+            lMeshCollider.sharedMesh = lColliderMeshes.mesh;
             lColliderMeshes.setToTransform(lColliderObject.transform);
             ++i;
         }
