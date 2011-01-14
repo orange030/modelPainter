@@ -13,6 +13,8 @@ public class CreateModel : MonoBehaviour
     public Vector2 modelMaxSize;
     public Material modelMaterial;
 
+    public SceneManager sceneManager;
+
     static Vector2 getFitSize(Vector2 pRealSize, Vector2 pMaxSize)
     {
         float lWidth = pRealSize.x;
@@ -117,7 +119,7 @@ public class CreateModel : MonoBehaviour
         if (!fileBrowserDialog)
         {
             fileBrowserDialog = zzFileBrowserDialog.createDialog(UIRootObject.transform);
-            fileBrowserDialog.addExtensionFilter("", new string[] { "png" });
+            fileBrowserDialog.addFileFilter("", new string[] { "*.png" });
             fileBrowserDialog.relativePosition = new Rect(0.0f, 0.0f, 6.0f / 7.0f, 4.0f / 5.0f);
             fileBrowserDialog.useRelativePosition = new zzGUIRelativeUsedInfo(false, false, true, true);
             fileBrowserDialog.horizontalDockPosition = zzGUIDockPos.center;
@@ -138,9 +140,6 @@ public class CreateModel : MonoBehaviour
             if (nowPainterOutData.haveModelData)
             {
                 createObject(nowPainterOutData);
-                createObject(nowPainterOutData);
-                createObject(nowPainterOutData);
-                createObject(nowPainterOutData);
             }
             else
             {
@@ -157,24 +156,20 @@ public class CreateModel : MonoBehaviour
     }
 
     zzCoroutineTimer drawTimer;
-    public GameObject[] modelObjectList = new GameObject[0];
+    //public GameObject[] modelObjectList = new GameObject[0];
 
     void clearModelObjects()
     {
-        foreach (var lObject in modelObjectList)
+        foreach (Transform lObject in sceneManager)
         {
-            Destroy(lObject);
+            Destroy(lObject.gameObject);
         }
-        modelObjectList = new GameObject[0];
 
     }
 
     void addModelObjects(GameObject[] pModelObjects)
     {
-        var lNewList = new List<GameObject>(modelObjectList.Length + pModelObjects.Length);
-        lNewList.AddRange(modelObjectList);
-        lNewList.AddRange(pModelObjects);
-        modelObjectList = lNewList.ToArray();
+        sceneManager.addObject(pModelObjects);
         updateObjectState(pModelObjects);
     }
 
@@ -264,7 +259,6 @@ public class CreateModel : MonoBehaviour
         {
             updateObjectState(lObject);
         }
-
     }
 
     void updateObjectState(GameObject pObject)
@@ -272,7 +266,7 @@ public class CreateModel : MonoBehaviour
         bool lIsKinematic = !inPlaying;
         var lRigidbody = pObject.GetComponent<Rigidbody>();
         lRigidbody.isKinematic = lIsKinematic;
-        if (lIsKinematic)
+        if (inPlaying)
             lRigidbody.WakeUp();
 
     }
@@ -282,8 +276,10 @@ public class CreateModel : MonoBehaviour
         if (inPlaying == pIsPlay)
             return;
         inPlaying = pIsPlay;
-        bool lIsKinematic = !pIsPlay;
-        updateObjectState(modelObjectList);
+        foreach (Transform lSub in sceneManager)
+        {
+            updateObjectState(lSub.gameObject);
+        }
 
     }
 
@@ -398,8 +394,9 @@ public class CreateModel : MonoBehaviour
         //确定资源共用关系,定义唯一值
         var lTextures = new Dictionary<Texture2D, string>();
         var lPaintingModelData = new Dictionary<PaintingModelData, string>();
-        foreach (var lModelObject in modelObjectList)
+        foreach (Transform lModelObjectTransform in sceneManager)
         {
+            GameObject lModelObject = lModelObjectTransform.gameObject;
             var lPaintingMesh =  lModelObject.GetComponent<PaintingMesh>();
             var lTexture2D = lPaintingMesh.material.mainTexture as Texture2D;
             if (!lTextures.ContainsKey(lTexture2D))
@@ -435,10 +432,10 @@ public class CreateModel : MonoBehaviour
         //保存场景
         {
             Hashtable lGroupData = new Hashtable();
-            ArrayList lObjectList = new ArrayList(modelObjectList.Length);
-            foreach (var lModelObject in modelObjectList)
+            ArrayList lObjectList = new ArrayList(sceneManager.objectCount);
+            foreach (Transform lTransform in sceneManager)
             {
-                Transform lTransform = lModelObject.transform;
+                GameObject lModelObject = lTransform.gameObject;
                 var lPaintingMesh = lModelObject.GetComponent<PaintingMesh>();
                 Hashtable lObjectData = new Hashtable();
                 lObjectData["modelData"] = lPaintingModelData[lPaintingMesh.modelData];

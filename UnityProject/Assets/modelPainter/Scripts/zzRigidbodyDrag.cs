@@ -3,6 +3,15 @@ using System.Collections;
 
 class zzRigidbodyDrag:MonoBehaviour
 {
+    public enum DragMode
+    {
+        none,
+        XY,
+        XZ,
+    }
+
+    public DragMode dragMode = DragMode.none;
+
     public LayerMask dragLayerMask;
     public float detectDistance = 1000.0f;
     public Vector3 originalPosition;
@@ -13,7 +22,10 @@ class zzRigidbodyDrag:MonoBehaviour
     public float maxDragForce;
     public float maxSpeed;
 
-    public Joint jointDrag;
+    public Joint jointXyDrag;
+    public Joint jointXzDrag;
+
+    public Joint nowDrag;
 
     public bool rigidbodyIsKinematic;
 
@@ -37,11 +49,39 @@ class zzRigidbodyDrag:MonoBehaviour
         return getZFlatCrossPoint(originalPosition, getCameraRay());
     }
 
+    Vector3 getXZWantPos()
+    {
+        return getYFlatCrossPoint(originalPosition, getCameraRay());
+    }
+
+    static Vector3 getFlatCrossPoint(Vector3 pFlatPos, Ray pRay,DragMode pMode)
+    {
+        switch (pMode)
+        {
+            case DragMode.XY:
+                return getZFlatCrossPoint(pFlatPos, pRay);
+                break;
+            case DragMode.XZ:
+                return getYFlatCrossPoint( pFlatPos, pRay);
+                break;
+        }
+        Debug.LogError("getFlatCrossPoint");
+        return pFlatPos;
+    }
+
+
     static Vector3 getZFlatCrossPoint(Vector3 pFlatPos, Ray pRay)
     {
         if (Mathf.Approximately(pRay.origin.z, pFlatPos.z))
             return pFlatPos;
         return pRay.origin + pRay.direction * (pFlatPos.z - pRay.origin.z) / pRay.direction.z;
+    }
+
+    static Vector3 getYFlatCrossPoint(Vector3 pFlatPos, Ray pRay)
+    {
+        if (Mathf.Approximately(pRay.origin.y, pFlatPos.y))
+            return pFlatPos;
+        return pRay.origin + pRay.direction * (pFlatPos.y - pRay.origin.y) / pRay.direction.y;
     }
 
     Vector3 getToAimForce(Vector3 pOriginalPos,Vector3 pAimPos)
@@ -70,7 +110,8 @@ class zzRigidbodyDrag:MonoBehaviour
         dragedRigidbody.useGravity = true;
         dragedRigidbody.isKinematic = rigidbodyIsKinematic;
         dragedRigidbody = null;
-        jointDrag.connectedBody = null;
+        nowDrag.connectedBody = null;
+        dragMode = DragMode.none;
     }
 
     bool dragCheck(out RaycastHit pRaycastHit)
@@ -87,29 +128,48 @@ class zzRigidbodyDrag:MonoBehaviour
     void Update()
     {
         RaycastHit lRaycastHit;
-        if (Input.GetKeyDown(KeyCode.Mouse0) && dragCheck(out lRaycastHit))
+        bool lXYButton = Input.GetKey(KeyCode.Mouse0);
+        bool lXZButton = Input.GetKey(KeyCode.Mouse1);
+        if (dragMode == DragMode.none 
+            && (lXYButton | lXZButton)
+            && dragCheck(out lRaycastHit))
         {
+            dragMode = lXYButton ? DragMode.XY : DragMode.XZ;
+            nowDrag = lXYButton ? jointXyDrag : jointXzDrag;
             dragedRigidbody = lRaycastHit.rigidbody;
             rigidbodyIsKinematic = dragedRigidbody.isKinematic;
             dragedRigidbody.isKinematic = false;
             dragedRigidbody.useGravity = false;
             var lDragedTransform = lRaycastHit.rigidbody.transform;
             var lDragWorldPos =
-                getZFlatCrossPoint(lDragedTransform.position,getCameraRay());
+                getZFlatCrossPoint(lDragedTransform.position, getCameraRay());
+                //getFlatCrossPoint(lDragedTransform.position, getCameraRay(), dragMode);
             originalPosition = lDragWorldPos;
-            jointDrag.transform.position = lDragWorldPos;
-            jointDrag.connectedBody = dragedRigidbody;
-            //dragPosInBody = lDragedTransform.InverseTransformPoint(lDragWorldPos);
+            nowDrag.transform.position = lDragWorldPos;
+            nowDrag.connectedBody = dragedRigidbody;
+
         }
-        if (dragedRigidbody && Input.GetKeyUp(KeyCode.Mouse0))
+
+        if (
+            (dragMode == DragMode.XY && (!lXYButton))
+            || (dragMode == DragMode.XZ && (!lXZButton))
+            )
             endDrag();
     }
 
     void FixedUpdate()
     {
-        if (dragedRigidbody)
+        if (dragMode!= DragMode.none)
         {
-            wantPos = getXYWantPos();
+            switch (dragMode)
+            {
+                case DragMode.XY:
+                    wantPos = getXYWantPos();
+                    break;
+                case DragMode.XZ:
+                    wantPos = getXZWantPos();
+                    break;
+            }
             //var lVelocity = dragedRigidbody.velocity;
             //if (lVelocity.sqrMagnitude > (maxSpeed * maxSpeed))
             //{
@@ -118,7 +178,7 @@ class zzRigidbodyDrag:MonoBehaviour
             //Vector3 ldragPosInWorld = dragedRigidbody.transform.TransformPoint(dragPosInBody);
             //dragedRigidbody.AddForceAtPosition(getToAimForce(ldragPosInWorld, wantPos),
             //    ldragPosInWorld);
-            jointDrag.transform.position = wantPos;
+            nowDrag.transform.position = wantPos;
         }
     }
 
