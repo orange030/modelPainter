@@ -4,10 +4,10 @@ using System.Collections;
 
 public class PaintingModelData
 {
-    public PaintingModelData()
-    {
-        Debug.Log("new PaintingModelData");
-    }
+    //public PaintingModelData()
+    //{
+    //    Debug.Log("new PaintingModelData");
+    //}
 
     public struct ModelData
     {
@@ -133,11 +133,11 @@ public class PaintingModelData
 
 }
 
-public class PaintingMesh:MonoBehaviour
+public class PaintingMesh : zzEditableObject
 {
     public static PaintingMesh  create(GameObject lObject,PaintingModelData pData)
     {
-        print("GameObject" + lObject.name);
+        //print("GameObject" + lObject.name);
         Transform lTransform = lObject.transform;
         var lOut = lObject.AddComponent<PaintingMesh>();
         lOut.modelData = pData;
@@ -153,7 +153,6 @@ public class PaintingMesh:MonoBehaviour
         foreach (var lColliderMeshes in pData.colliderMeshes)
         {
             var lColliderObject = new GameObject("Collider" + i);
-            print("Collider" + i);
             lColliderObject.transform.parent = lTransform;
             var lMeshCollider = lColliderObject.AddComponent<MeshCollider>();
             lMeshCollider.convex = true;
@@ -162,6 +161,13 @@ public class PaintingMesh:MonoBehaviour
             ++i;
         }
         return lOut;
+    }
+
+    public override void scale(Vector3 pScale)
+    {
+        var lLocalScale = transform.localScale;
+        lLocalScale.Scale(pScale);
+        transform.localScale = lLocalScale;
     }
 
     [SerializeField]
