@@ -17,6 +17,15 @@ class zzRigidbodyDrag:MonoBehaviour
 
     public Camera dragCamera;
 
+    public delegate void PickEvent(GameObject pObject);
+
+    protected PickEvent pickEvent;
+
+    public void addPickReceiver(PickEvent pPickEvent)
+    {
+        pickEvent += pPickEvent;
+    }
+
     protected void Start()
     {
         dragCamera = Camera.main;

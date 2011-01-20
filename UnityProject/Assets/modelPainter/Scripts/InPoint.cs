@@ -12,6 +12,8 @@ public class InPoint:MonoBehaviour
 
     public delegate void ProcessFuncFloatArg(float value);
 
+    public OutPoint connectPoint;
+
     event ProcessFunc inDataFunc;
 
     public void addProcessFunc(ProcessFunc pFunc)
@@ -27,6 +29,12 @@ public class InPoint:MonoBehaviour
     public void addProcessFuncFloatArg(ProcessFuncFloatArg pFunc)
     {
         inDataFunc += (InPoint sender, float value) => pFunc(value);
+    }
+
+    public void disconnect()
+    {
+        if (connectPoint)
+            connectPoint.disconnect(this);
     }
 
     [SerializeField]

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class OutPoint : MonoBehaviour
 {
@@ -8,12 +9,38 @@ public class OutPoint : MonoBehaviour
 
     public InPoint[] connectPoints = new InPoint[0];
 
+    List<InPoint> mConnectPoints;
+
     [SerializeField]
     float _powerValue;
+
+    public void connect(InPoint pInPoint)
+    {
+        pInPoint.disconnect();
+        pInPoint.connectPoint = this;
+        mConnectPoints.Add(pInPoint);
+        connectPoints = mConnectPoints.ToArray();
+    }
+
+    public void disconnect(InPoint pInPoint)
+    {
+        for (int i = 0; i < mConnectPoints.Count; ++i)
+        {
+            if (pInPoint == connectPoints[i])
+            {
+                pInPoint.connectPoint = null;
+                mConnectPoints.RemoveAt(i);
+                connectPoints = mConnectPoints.ToArray();
+                return;
+            }
+        }
+        Debug.LogError("disconnect(InPoint pInPoint)");
+    }
 
     void Awake()
     {
         _powerValue = 0f;
+        mConnectPoints = new List<InPoint>(connectPoints);
     }
 
     public float powerValue

@@ -6,16 +6,43 @@ class ForceObject : zzEditableObject
     public InPoint controlPoint;
 
     [SerializeField]
-    float _maxForce = 10f;
+    float _minForce = 0f;
+
+    [FieldUI("min force")]
+    public float minForce
+    {
+        get { return _minForce; }
+        set 
+        {
+            _minForce = value;
+            updateForce();
+        }
+    }
 
     [SerializeField]
-    float _minForce = 0f;
+    float _maxForce = 10f;
+
+    [FieldUI("max force")]
+    public float maxForce
+    {
+        get { return _maxForce; }
+        set 
+        { 
+            _maxForce = value;
+            updateForce();
+        }
+    }
 
     public ConstantForce myConstantForce;
 
     public override void scale(Vector3 pScale)
     {
 
+    }
+
+    void updateForce()
+    {
+        setForceRate(controlPoint.powerValue);
     }
 
     void Start()

@@ -69,6 +69,7 @@ class zzRigidbodyDragMove : zzRigidbodyDrag
         RaycastHit lRaycastHit;
         bool lXYButton = Input.GetKey(KeyCode.Mouse0);
         bool lXZButton = Input.GetKey(KeyCode.Mouse1);
+
         if (dragMode == DragMode.none
             && (lXYButton | lXZButton)
             && dragCheck(out lRaycastHit))
@@ -87,13 +88,17 @@ class zzRigidbodyDragMove : zzRigidbodyDrag
             nowDrag.transform.position = lDragWorldPos;
             nowDrag.connectedBody = dragedRigidbody;
 
+            pickEvent(dragedRigidbody.gameObject);
+
         }
 
         if (
             (dragMode == DragMode.XY && (!lXYButton))
             || (dragMode == DragMode.XZ && (!lXZButton))
             )
+        {
             endDrag();
+        }
     }
 
     void FixedUpdate()
