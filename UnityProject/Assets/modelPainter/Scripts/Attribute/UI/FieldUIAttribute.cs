@@ -24,17 +24,15 @@ public class FieldUIAttribute:UiAttributeBase
         var lStyle = skin.FindStyle("FieldUI");
         if (lStyle!=null)
             return GUILayout.TextField(text, maxLength, lStyle);
-        return GUILayout.TextField(text);
+        return GUILayout.TextField(text, maxLength);
     }
 
-    public override void impUI(object pObject, MemberInfo pMemberInfo)
+    public void floatField(object pObject, PropertyInfo pPropertyInfo)
     {
-        PropertyInfo pPropertyInfo = (PropertyInfo)pMemberInfo;
-        //float lValue = (float)pPropertyInfo.GetValue(pObject, null);
-        GUILayout.Label(label);
+        //无缓存内容时,显示属性内的值
         if (stringBuffer.Length == 0)
             stringBuffer
-                = TextField(pPropertyInfo.GetValue(pObject, null).ToString(),8);
+                = TextField(pPropertyInfo.GetValue(pObject, null).ToString(), 8);
         else
         {
             string lNewText = TextField(stringBuffer, 8);
@@ -50,5 +48,27 @@ public class FieldUIAttribute:UiAttributeBase
                 }
             }
         }
+    }
+
+    public void boolField(object pObject, PropertyInfo pPropertyInfo)
+    {
+        bool lValue = (bool)pPropertyInfo.GetValue(pObject, null);
+        bool lNewValue = GUILayout.Toggle(lValue,"");
+        if(lValue!=lNewValue)
+            pPropertyInfo.SetValue(pObject, lNewValue, null);
+    }
+
+    public override void impUI(object pObject, MemberInfo pMemberInfo)
+    {
+        PropertyInfo pPropertyInfo = (PropertyInfo)pMemberInfo;
+        //float lValue = (float)pPropertyInfo.GetValue(pObject, null);
+        GUILayout.Label(label);
+        var lPropertyType = pPropertyInfo.PropertyType;
+        if (lPropertyType == typeof(float))
+            floatField(pObject, pPropertyInfo);
+        else if (lPropertyType == typeof(bool))
+            boolField(pObject, pPropertyInfo);
+        else
+            Debug.LogError("no ui in the type ");
     }
 }

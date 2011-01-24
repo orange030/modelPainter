@@ -169,7 +169,7 @@ public class CreateModel : MonoBehaviour
 
     void addModelObjects(GameObject[] pModelObjects)
     {
-        sceneManager.addObject(pModelObjects);
+        sceneManager.addObjects(pModelObjects);
         updateObjectState(pModelObjects);
     }
 

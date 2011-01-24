@@ -9,7 +9,7 @@ public class OutPoint : MonoBehaviour
 
     public InPoint[] connectPoints = new InPoint[0];
 
-    List<InPoint> mConnectPoints;
+    List<InPoint> mConnectPoints = new List<InPoint>();
 
     [SerializeField]
     float _powerValue;
@@ -40,7 +40,11 @@ public class OutPoint : MonoBehaviour
     void Awake()
     {
         _powerValue = 0f;
-        mConnectPoints = new List<InPoint>(connectPoints);
+        var lPoints = connectPoints;
+        foreach (var lPoint in lPoints)
+        {
+            connect(lPoint);
+        }
     }
 
     public float powerValue

@@ -8,7 +8,7 @@ class ForceObject : zzEditableObject
     [SerializeField]
     float _minForce = 0f;
 
-    [FieldUI("min force")]
+    [FieldUI("最大力量")]
     public float minForce
     {
         get { return _minForce; }
@@ -22,7 +22,7 @@ class ForceObject : zzEditableObject
     [SerializeField]
     float _maxForce = 10f;
 
-    [FieldUI("max force")]
+    [FieldUI("最小力量")]
     public float maxForce
     {
         get { return _maxForce; }

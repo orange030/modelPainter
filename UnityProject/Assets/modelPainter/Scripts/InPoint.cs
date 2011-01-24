@@ -40,6 +40,31 @@ public class InPoint:MonoBehaviour
     [SerializeField]
     float _powerValue;
 
+    public ControlPointLine pointLine;
+
+    public void showLine()
+    {
+        if(connectPoint )
+        {
+            if (!pointLine)
+            {
+                pointLine = ((GameObject)Instantiate(GameSystem.Singleton.controlPointLinePrefab)).
+                      GetComponent<ControlPointLine>();
+            }
+            pointLine.inPoint = this.transform;
+            pointLine.outPoint = connectPoint.transform;
+        }
+    }
+
+    public void hideLine()
+    {
+        if (pointLine)
+        {
+            Destroy(pointLine.gameObject);
+            pointLine = null;
+        }
+    }
+
     void Awake()
     {
         _powerValue = 0f;

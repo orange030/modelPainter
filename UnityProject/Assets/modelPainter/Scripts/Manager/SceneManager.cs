@@ -12,11 +12,17 @@ public class SceneManager:MonoBehaviour , IEnumerable
             managerRoot = (new GameObject(managerName)).transform;
     }
 
-    public void addObject(GameObject[] pObjects)
+    public void addObject(GameObject pObject)
+    {
+        pObject.transform.parent = managerRoot;
+
+    }
+
+    public void addObjects(GameObject[] pObjects)
     {
         foreach (var lObject in pObjects)
         {
-            lObject.transform.parent = managerRoot;
+            addObject(lObject);
         }
     }
 

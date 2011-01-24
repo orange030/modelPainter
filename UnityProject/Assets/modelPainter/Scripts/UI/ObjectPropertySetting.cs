@@ -59,6 +59,16 @@ public class ObjectPropertySetting:MonoBehaviour
 
     }
 
+    public  void beginImpUI(ObjectPropertyWindow pWindow)
+    {
+
+    }
+
+    public void endImpUI()
+    {
+        clearUiBuffer();
+    }
+
     public  void impUI()
     {
         foreach (var lUiItem in uiItemList)

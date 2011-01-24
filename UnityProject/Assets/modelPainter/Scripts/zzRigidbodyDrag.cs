@@ -1,30 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum DragMode
+{
+    none,
+    XY,
+    XZ,
+}
+
 class zzRigidbodyDrag:MonoBehaviour
 {
-    public enum DragMode
-    {
-        none,
-        XY,
-        XZ,
-    }
 
     public DragMode dragMode = DragMode.none;
 
-    public LayerMask dragLayerMask;
-    public float detectDistance = 1000.0f;
-
     public Camera dragCamera;
-
-    public delegate void PickEvent(GameObject pObject);
-
-    protected PickEvent pickEvent;
-
-    public void addPickReceiver(PickEvent pPickEvent)
-    {
-        pickEvent += pPickEvent;
-    }
 
     protected void Start()
     {
@@ -40,7 +29,7 @@ class zzRigidbodyDrag:MonoBehaviour
 
     }
 
-    protected static Vector3 getFlatCrossPoint(Vector3 pFlatPos, Ray pRay, DragMode pMode)
+    public static Vector3 getFlatCrossPoint(Vector3 pFlatPos, Ray pRay, DragMode pMode)
     {
         switch (pMode)
         {
@@ -56,14 +45,14 @@ class zzRigidbodyDrag:MonoBehaviour
     }
 
 
-    protected static Vector3 getZFlatCrossPoint(Vector3 pFlatPos, Ray pRay)
+    public static Vector3 getZFlatCrossPoint(Vector3 pFlatPos, Ray pRay)
     {
         if (Mathf.Approximately(pRay.origin.z, pFlatPos.z))
             return pFlatPos;
         return pRay.origin + pRay.direction * (pFlatPos.z - pRay.origin.z) / pRay.direction.z;
     }
 
-    protected static Vector3 getYFlatCrossPoint(Vector3 pFlatPos, Ray pRay)
+    public static Vector3 getYFlatCrossPoint(Vector3 pFlatPos, Ray pRay)
     {
         if (Mathf.Approximately(pRay.origin.y, pFlatPos.y))
             return pFlatPos;

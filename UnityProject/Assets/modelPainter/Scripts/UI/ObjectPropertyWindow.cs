@@ -25,7 +25,9 @@ public class ObjectPropertyWindow : zzWindow
     public void setObjectToShow(GameObject pObject)
     {
         if (objectPropertySetting)
-            objectPropertySetting.clearUiBuffer();
+        {
+            objectPropertySetting.endImpUI();
+        }
 
         ObjectPropertySetting lSetting = null;
         if(pObject)
@@ -35,12 +37,15 @@ public class ObjectPropertyWindow : zzWindow
             Transform lTransform = pObject.transform.parent;
             while (lTransform)
             {
-                lSetting = lTransform.GetComponent<ObjectPropertySetting>();
+                var lParentSetting = lTransform.GetComponent<ObjectPropertySetting>();
+                if (lParentSetting)
+                    lSetting = lParentSetting;
                 lTransform = lTransform.parent;
             }
-
         }
         objectPropertySetting = lSetting;
+        if (objectPropertySetting)
+            objectPropertySetting.beginImpUI(this);
     }
 
 }
