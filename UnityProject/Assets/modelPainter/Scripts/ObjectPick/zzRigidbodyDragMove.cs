@@ -15,8 +15,6 @@ class zzRigidbodyDragMove : ObjectPickBase
 
     public Joint nowDrag;
 
-    public bool rigidbodyIsKinematic;
-
     public DragMode dragMode = DragMode.none;
 
 
@@ -50,8 +48,6 @@ class zzRigidbodyDragMove : ObjectPickBase
     {
         if (dragMode == DragMode.none)
             return;
-        dragedRigidbody.useGravity = true;
-        dragedRigidbody.isKinematic = rigidbodyIsKinematic;
         dragedRigidbody = null;
         nowDrag.connectedBody = null;
         dragMode = DragMode.none;
@@ -98,32 +94,14 @@ class zzRigidbodyDragMove : ObjectPickBase
     {
         OnDragObject(pObject, DragMode.XZ);
     }
+
     zzEditableObject editableObject;
-
-    zzEditableObject findRootEditable(GameObject pObject)
-    {
-        if (!pObject)
-            return null;
-        var lEditable = pObject.GetComponent<zzEditableObject>();
-        Transform lTransform = pObject.transform.parent;
-        while (lTransform)
-        {
-            var lParentEditable = lTransform.GetComponent<zzEditableObject>();
-            if (lParentEditable)
-                lEditable = lParentEditable;
-            lTransform = lTransform.parent;
-        }
-        if (lEditable)
-            return lEditable;
-        return null;
-    }
-
 
     void OnDragObject(GameObject pObject,DragMode pMode)
     {
         if (dragMode != DragMode.none)
             return;
-        var lEditableObject = findRootEditable(pObject);
+        var lEditableObject = zzEditableObject.findRoot(pObject);
         if (!lEditableObject)
             return;
         
@@ -132,9 +110,6 @@ class zzRigidbodyDragMove : ObjectPickBase
         dragMode = pMode;
         nowDrag = dragMode == DragMode.XY ? jointXyDrag : jointXzDrag;
         dragedRigidbody = lEditableObject.rigidbody;
-        rigidbodyIsKinematic = dragedRigidbody.isKinematic;
-        dragedRigidbody.isKinematic = false;
-        dragedRigidbody.useGravity = false;
         var lDragedTransform = lEditableObject.transform;
         var lDragWorldPos =
             zzRigidbodyDrag.getZFlatCrossPoint(lDragedTransform.position,

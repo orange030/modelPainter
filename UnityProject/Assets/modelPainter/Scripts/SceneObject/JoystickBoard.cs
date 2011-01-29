@@ -19,7 +19,7 @@ class JoystickBoard : zzEditableObject
     const float dirButtonDownValue = 1f;
     const float AbButtonDownValue = 1f;
 
-    public override void scale(Vector3 pScale)
+    public override void transformScale(Vector3 pScale)
     {
 
     }

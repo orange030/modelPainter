@@ -18,7 +18,7 @@ public class Compass : zzEditableObject
     public InPoint rightInPoint;
     //const int rightID = 3;
 
-    public override void scale(Vector3 pScale)
+    public override void transformScale(Vector3 pScale)
     {
 
     }

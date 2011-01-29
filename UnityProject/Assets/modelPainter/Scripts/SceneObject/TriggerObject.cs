@@ -5,7 +5,7 @@ class TriggerObject : zzEditableObject
 {
     public OutPoint triggerPoint;
 
-    public override void scale(Vector3 pScale)
+    public override void transformScale(Vector3 pScale)
     {
 
     }

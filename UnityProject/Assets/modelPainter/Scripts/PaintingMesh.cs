@@ -163,7 +163,7 @@ public class PaintingMesh : zzEditableObject
         return lOut;
     }
 
-    public override void scale(Vector3 pScale)
+    public override void transformScale(Vector3 pScale)
     {
         var lLocalScale = transform.localScale;
         lLocalScale.Scale(pScale);

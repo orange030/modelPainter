@@ -21,8 +21,8 @@ public class JointObject : zzEditableObject
         }
     }
 
-    public zzRigidbodySweepDetector sweepDetector1;
-    public zzRigidbodySweepDetector sweepDetector2;
+    //六个扫描序列为x x y y z z
+    public zzRigidbodySweepDetector[] sweepDetectors;
 
     [SerializeField]
     ConfigurableJoint[] JointList = new ConfigurableJoint[0];
@@ -65,21 +65,29 @@ public class JointObject : zzEditableObject
         }
     }
 
+    void getRigidbodySweep(zzRigidbodySweepDetector pDetector, float pDistance, HashSet<Rigidbody> pBody)
+    {
+        pDetector.distance = pDistance;
+        foreach (var lHit in pDetector.SweetTest())
+        {
+            pBody.Add(lHit.rigidbody);
+        }
+    }
+
     [ContextMenu("UpdateJoint")]
     public void UpdateJoint()
     {
-        float lXLength = transform.lossyScale.x;
         HashSet<Rigidbody> lBodyToConnect = new HashSet<Rigidbody>();
-        sweepDetector1.distance = lXLength;
-        sweepDetector2.distance = lXLength;
-        foreach (var lHit in sweepDetector1.SweetTest())
-        {
-            lBodyToConnect.Add(lHit.rigidbody);
-        }
-        foreach (var lHit in sweepDetector2.SweetTest())
-        {
-            lBodyToConnect.Add(lHit.rigidbody);
-        }
+        var lScale = transform.lossyScale;
+        getRigidbodySweep(sweepDetectors[0], lScale.x, lBodyToConnect);
+        getRigidbodySweep(sweepDetectors[1], lScale.x, lBodyToConnect);
+
+        getRigidbodySweep(sweepDetectors[2], lScale.y, lBodyToConnect);
+        getRigidbodySweep(sweepDetectors[3], lScale.y, lBodyToConnect);
+
+        getRigidbodySweep(sweepDetectors[4], lScale.z, lBodyToConnect);
+        getRigidbodySweep(sweepDetectors[5], lScale.z, lBodyToConnect);
+
 
         var lNewJointList = new List<ConfigurableJoint>(lBodyToConnect.Count);
         var lAddedList = new List<Rigidbody>();

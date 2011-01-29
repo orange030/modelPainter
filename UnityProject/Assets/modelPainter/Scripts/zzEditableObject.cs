@@ -41,7 +41,9 @@ public class zzEditableObject : MonoBehaviour
         set
         {
             if (value)
+            {
                 rigidbody.isKinematic = false;
+            }
             else
                 applyState();
         }
@@ -57,8 +59,11 @@ public class zzEditableObject : MonoBehaviour
         set
         { 
             _fixed = value;
-            if(_inPlaying)
+            if (_inPlaying)
+            {
                 rigidbody.isKinematic = _fixed;
+                rigidbody.WakeUp();
+            }
         }
     }
 
@@ -98,7 +103,10 @@ public class zzEditableObject : MonoBehaviour
         {
             _freezeRotation = value;
             if (_inPlaying)
+            {
                 rigidbody.freezeRotation = _freezeRotation;
+                rigidbody.WakeUp();
+            }
         }
     }
 
@@ -107,11 +115,27 @@ public class zzEditableObject : MonoBehaviour
 
     public GameObject[] objectList;
 
-    public virtual void scale(Vector3 pScale)
+    [SerializeField]
+    bool _uniformScale;
+
+    public bool uniformScale
+    {
+        get { return _uniformScale; }
+    }
+
+    public virtual void transformScale(Vector3 pScaleChange)
     {
         var lLocalScale = transform.localScale;
-        lLocalScale.Scale(pScale);
-        transform.localScale = lLocalScale;
+        Vector3 lScale;
+        if (_uniformScale)
+        {
+            float lLength = (pScaleChange.x>0?1f:-1f)*pScaleChange.magnitude;
+            float lUniformValue = lLocalScale.x + lLength;
+            lScale = new Vector3(lUniformValue, lUniformValue, lUniformValue);
+        }
+        else
+            lScale= lLocalScale + pScaleChange;
+        transform.localScale = lScale;
     }
 
     protected virtual void Awake()
@@ -148,5 +172,23 @@ public class zzEditableObject : MonoBehaviour
         {
             lPoint.pointId = ++lID;
         }
+    }
+
+    public static zzEditableObject findRoot(GameObject pObject)
+    {
+        if (!pObject)
+            return null;
+        var lEditable = pObject.GetComponent<zzEditableObject>();
+        Transform lTransform = pObject.transform.parent;
+        while (lTransform)
+        {
+            var lParentEditable = lTransform.GetComponent<zzEditableObject>();
+            if (lParentEditable)
+                lEditable = lParentEditable;
+            lTransform = lTransform.parent;
+        }
+        if (lEditable)
+            return lEditable;
+        return null;
     }
 }
