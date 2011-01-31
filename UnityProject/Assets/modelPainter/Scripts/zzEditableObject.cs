@@ -113,7 +113,7 @@ public class zzEditableObject : MonoBehaviour
     [SerializeField]
     GameObjectType _gameObjectType;
 
-    public GameObject[] objectList;
+    public GameObject[] objectList = new GameObject[0];
 
     [SerializeField]
     bool _uniformScale;

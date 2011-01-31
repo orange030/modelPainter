@@ -15,7 +15,7 @@ public class ObjectPropertyWindow : zzWindow
         if (objectPropertySetting)
         {
             objectPropertySetting.skin = objectPropertyUiSkin;
-            objectPropertySetting.impUI();
+            objectPropertySetting.impUI(position);
         }
 
         GUILayout.EndVertical();

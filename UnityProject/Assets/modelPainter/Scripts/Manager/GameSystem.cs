@@ -48,6 +48,8 @@ public class GameSystem:MonoBehaviour
 
     public GameObject controlPointLinePrefab;
 
+    public GameObject paintingObjectPrefab;
+
     public static GameSystem Singleton
     {
         get { return singletonInstance; }

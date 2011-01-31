@@ -3,7 +3,7 @@ using System.Collections;
 using System.Reflection;
 
 
-[System.AttributeUsage(System.AttributeTargets.Property | System.AttributeTargets.Field)]
+[System.AttributeUsage(System.AttributeTargets.Property)]
 public class FieldUIAttribute:UiAttributeBase
 {
 

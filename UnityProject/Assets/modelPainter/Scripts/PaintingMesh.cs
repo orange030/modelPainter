@@ -1,6 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public class PaintingModelResource
+{
+    public string modelName;
+    public PaintingModelData modelData;
+    public ResourceType resourceType;
+}
 
 public class PaintingModelData
 {
@@ -34,6 +40,8 @@ public class PaintingModelData
 
     public ModelData renderMesh;
     public ModelData[] colliderMeshes;
+
+    //用来计算UV
     public Vector2 pictureSize;
 
     static public Hashtable serializeToTable(ModelData pModelData)
@@ -120,7 +128,7 @@ public class PaintingModelData
         var lColliderMeshes = new ModelData[lMeshCollider.Length];
         for (int i = 0; i < lMeshCollider.Length; ++i)
         {
-            lColliderMeshes[i].mesh = lMeshCollider[i].mesh;
+            lColliderMeshes[i].mesh = lMeshCollider[i].sharedMesh;
             lColliderMeshes[i].setTransform(lMeshCollider[i].transform);
         }
         lPaintingMesh.colliderMeshes = lColliderMeshes;
@@ -141,9 +149,6 @@ public class PaintingMesh : zzEditableObject
         Transform lTransform = lObject.transform;
         var lOut = lObject.AddComponent<PaintingMesh>();
         lOut.modelData = pData;
-        lObject.AddComponent<Rigidbody>();
-        lObject.AddComponent<zzObjectElement>();
-        lObject.AddComponent<zzEditableObject>();
         var lRenderObject = new GameObject("Render");
         lOut.paintRenderer = lRenderObject.AddComponent<MeshRenderer>();
         lRenderObject.AddComponent<MeshFilter>().mesh = pData.renderMesh.mesh;
@@ -162,6 +167,8 @@ public class PaintingMesh : zzEditableObject
         }
         return lOut;
     }
+
+    ResourceType _resourceType;
 
     public override void transformScale(Vector3 pScale)
     {

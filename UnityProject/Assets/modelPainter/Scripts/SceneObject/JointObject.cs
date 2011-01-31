@@ -53,7 +53,7 @@ public class JointObject : zzEditableObject
 
     }
 
-    [FieldUI("冻结物体旋转")]
+    [FieldUI("冻结被约束物体旋转",verticalDepth=10)]
     public bool freezeObjectRotation
     {
         get { return _freezeObjectRotation; }

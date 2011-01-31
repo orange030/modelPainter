@@ -26,6 +26,14 @@ public class SceneManager:MonoBehaviour , IEnumerable
         }
     }
 
+    public void clearObject()
+    {
+        foreach (Transform lObject in managerRoot)
+        {
+            Destroy(lObject.gameObject);
+        }
+    }
+
     public int objectCount
     {
         get { return managerRoot.GetChildCount(); }
