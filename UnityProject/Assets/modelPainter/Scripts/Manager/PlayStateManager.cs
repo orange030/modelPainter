@@ -6,8 +6,6 @@ public class PlayStateManager:MonoBehaviour
     [SerializeField]
     bool _inPlaying = false;
 
-    public delegate IEnumerator GetEnumeratorFunc();
-
     public IEnumerable enumerateObject;
 
     public Transform ToInitState;

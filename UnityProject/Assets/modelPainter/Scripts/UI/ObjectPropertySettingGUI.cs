@@ -2,18 +2,11 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-public class ObjectPropertySetting:MonoBehaviour
+public partial class ObjectPropertySetting : MonoBehaviour
 {
-    //public string[] UiItemInfos = new string[0];
-
-    //enum UiType
-    //{
-    //    property,
-    //}
-
     struct UiItem
     {
-        public UiItem(UiAttributeBase pUiType,MemberInfo pMemberInfo)
+        public UiItem(UiAttributeBase pUiType, MemberInfo pMemberInfo)
         {
             uiType = pUiType;
             memberInfo = pMemberInfo;
@@ -95,7 +88,7 @@ public class ObjectPropertySetting:MonoBehaviour
 
     }
 
-    class CPropertyGUI:IPropertyGUI
+    class CPropertyGUI : IPropertyGUI
     {
         //按行列优先级排序
         IPropertyGUI[] uiList;
@@ -143,44 +136,6 @@ public class ObjectPropertySetting:MonoBehaviour
             }
         }
 
-    }
-
-    static Dictionary<System.Type, IPropertyGUI> typeToUiItems
-        = new Dictionary<System.Type, IPropertyGUI>();
-
-
-    public MonoBehaviour[] UiObjects;
-
-    public IPropertyGUI[] PropertyGUIList;
-
-    void Start()
-    {
-        PropertyGUIList = new IPropertyGUI[UiObjects.Length];
-        for (int i = 0; i < UiObjects.Length;++i )
-        {
-            PropertyGUIList[i] = getPropertyGUI(UiObjects[i].GetType());
-        }
-    }
-
-    static IPropertyGUI getPropertyGUI(System.Type lType)
-    {
-        IPropertyGUI lOut;
-        if (typeToUiItems.ContainsKey(lType))
-            lOut = typeToUiItems[lType];
-        else
-        {
-            var lGetPropertyGUI = lType.GetMethod("get_PropertyGUI");
-            if (lGetPropertyGUI != null)
-            {
-                lOut = (IPropertyGUI)lGetPropertyGUI.Invoke(null,null);
-            }
-            else
-            {
-                lOut = new CPropertyGUI(getUiItemList(lType));
-            }
-            typeToUiItems[lType] = lOut;
-        }
-        return lOut;
     }
 
 
@@ -235,7 +190,7 @@ public class ObjectPropertySetting:MonoBehaviour
             }
 
             return lOut.ToArray();
-            
+
         }
     }
 
@@ -257,33 +212,5 @@ public class ObjectPropertySetting:MonoBehaviour
 
     }
 
-    public  void beginImpUI(ObjectPropertyWindow pWindow)
-    {
-        foreach (var lPropertyGUI in PropertyGUIList)
-        {
-            lPropertyGUI.beginImpGUI(pWindow);
-        }
-    }
-
-    public void endImpUI()
-    {
-        foreach (var lPropertyGUI in PropertyGUIList)
-        {
-            lPropertyGUI.endImpGUI();
-        }
-    }
-
-    public void impUI(Rect rect)
-    {
-        for( int i=0;i< PropertyGUIList.Length;++i)
-        {
-            var lPropertyGUI = PropertyGUIList[i];
-            lPropertyGUI.skin = skin;
-            lPropertyGUI.windowRect = rect;
-            lPropertyGUI.OnPropertyGUI(UiObjects[i]);
-        }
-    }
-
-    public GUISkin skin;
 
 }

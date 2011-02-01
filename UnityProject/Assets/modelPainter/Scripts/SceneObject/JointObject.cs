@@ -90,7 +90,6 @@ public class JointObject : zzEditableObject
 
 
         var lNewJointList = new List<ConfigurableJoint>(lBodyToConnect.Count);
-        var lAddedList = new List<Rigidbody>();
         foreach (var lJoint in JointList)
         {
             if (lBodyToConnect.Contains(lJoint.connectedBody))

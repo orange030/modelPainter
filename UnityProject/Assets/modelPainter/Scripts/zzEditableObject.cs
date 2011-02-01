@@ -52,6 +52,7 @@ public class zzEditableObject : MonoBehaviour
     [SerializeField]
     bool _fixed = false;
 
+    [zzSerialize]
     [FieldUI("固定物体")]
     public bool fixedObject
     {
@@ -70,6 +71,7 @@ public class zzEditableObject : MonoBehaviour
     [SerializeField]
     bool _useGravity;
 
+    [zzSerialize]
     [FieldUI("使用重力")]
     public bool useGravity
     {
@@ -83,6 +85,7 @@ public class zzEditableObject : MonoBehaviour
     }
 
 
+    [zzSerialize]
     [FieldUI("质量(kg)")]
     public float mass
     {
@@ -95,6 +98,7 @@ public class zzEditableObject : MonoBehaviour
 
     bool _freezeRotation;
 
+    [zzSerialize]
     [FieldUI("冻结旋转")]
     public bool freezeRotation
     {

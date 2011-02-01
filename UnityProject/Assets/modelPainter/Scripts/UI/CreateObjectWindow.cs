@@ -29,8 +29,9 @@ public class CreateObjectWindow : zzWindow
             {
                 var lObjectCreateInfo = new ObjectCreateInfo();
                 var lPrefabInfo = lPrefabInfos[i];
-                lObjectCreateInfo.name = lPrefabInfo.showName;
-                lObjectCreateInfo.prefab = lPrefabInfo.prefab;
+                lObjectCreateInfo.showName = lPrefabInfo.showName;
+                lObjectCreateInfo.name = lPrefabInfo.name;
+                //lObjectCreateInfo.prefab = lPrefabInfo.prefab;
                 objectCreateInfos[i] = lObjectCreateInfo;
             }
 
@@ -42,6 +43,7 @@ public class CreateObjectWindow : zzWindow
     public class ObjectCreateInfo
     {
         public string name;
+        public string showName;
         public GameObject prefab;
     }
 
@@ -73,10 +75,16 @@ public class CreateObjectWindow : zzWindow
         GUILayout.BeginVertical();
         foreach (var lInfo in objectCreateInfos)
         {
-            if (GUILayout.Button(lInfo.name, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(lInfo.showName, GUILayout.ExpandWidth(false)))
             {
-                var lObject = (GameObject)Instantiate(lInfo.prefab,
-                    getCreatePos(), Quaternion.identity);
+                GameObject lObject;
+                if(lInfo.prefab)
+                    lObject = (GameObject)Instantiate(lInfo.prefab,
+                        getCreatePos(), Quaternion.identity);
+                else
+                    lObject = GameSystem.Singleton.createObject(lInfo.name,
+                        getCreatePos(), Quaternion.identity);
+
                 addObjectEvent(lObject);
             }
         }

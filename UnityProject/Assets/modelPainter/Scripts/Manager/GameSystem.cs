@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum ResourceType
 {
@@ -21,9 +22,12 @@ public class GameSystem:MonoBehaviour
     [System.Serializable]
     public class PrefabInfo
     {
+        public string name;
         public string showName;
         public GameObject prefab;
     }
+
+    Dictionary<string, GameObject> nameToPrefab = new Dictionary<string,GameObject>();
 
     [System.Serializable]
     public class RenderMaterialInfo
@@ -34,6 +38,20 @@ public class GameSystem:MonoBehaviour
     }
 
     public PrefabInfo[] PrefabInfoList;
+
+    public GameObject createObject(string pTypeName,Vector3 position,Quaternion rotation)
+    {
+        var lOut =(GameObject)Instantiate(nameToPrefab[pTypeName], position, rotation);
+        lOut.GetComponent<ObjectPropertySetting>().TypeName = pTypeName;
+        return lOut;
+    }
+
+    public GameObject createObject(string pTypeName)
+    {
+        var lOut = (GameObject)Instantiate(nameToPrefab[pTypeName]);
+        lOut.GetComponent<ObjectPropertySetting>().TypeName = pTypeName;
+        return lOut;
+    }
 
     public RenderMaterialInfo[] renderMaterialInfoList;
 
@@ -72,6 +90,11 @@ public class GameSystem:MonoBehaviour
             lResource.materialName = renderMaterialInfoList[i].name;
             lResource.material = renderMaterialInfoList[i].material;
             renderMaterialResources[i] = lResource;
+        }
+
+        foreach (var lPrefabInfo in PrefabInfoList)
+        {
+            nameToPrefab[lPrefabInfo.name] = lPrefabInfo.prefab;
         }
 
     }
