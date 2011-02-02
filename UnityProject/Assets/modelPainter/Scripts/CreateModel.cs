@@ -458,7 +458,7 @@ public class CreateModel : MonoBehaviour
 
     }
 
-    GameResourceManager resourceManager = new GameResourceManager();
+    GameResourceManager0 resourceManager = new GameResourceManager0();
 
     void    readGroup(string pPath)
     {

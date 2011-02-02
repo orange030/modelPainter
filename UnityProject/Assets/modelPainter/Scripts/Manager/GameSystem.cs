@@ -2,20 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public enum ResourceType
-{
-    //内建
-    builtin,
-
-    //工程
-    project,
-
-    //外部文件
-    external,
-
-    //实时生成
-    realTime,
-}
 
 public class GameSystem:MonoBehaviour
 {
@@ -57,6 +43,14 @@ public class GameSystem:MonoBehaviour
 
     RenderMaterialResource[] renderMaterialResources;
 
+    Dictionary<string, RenderMaterialResource> nameToRenderMaterial
+        = new Dictionary<string, RenderMaterialResource>();
+
+    public RenderMaterialResource  getRenderMaterial(string pName)
+    {
+        return nameToRenderMaterial[pName];
+    }
+
     public RenderMaterialResource getRenderMaterial(int index)
     {
         return renderMaterialResources[index];
@@ -90,12 +84,18 @@ public class GameSystem:MonoBehaviour
             lResource.materialName = renderMaterialInfoList[i].name;
             lResource.material = renderMaterialInfoList[i].material;
             renderMaterialResources[i] = lResource;
+
+            nameToRenderMaterial[lResource.materialName] = lResource;
         }
+
+        //默认材质
+        nameToRenderMaterial[""] = renderMaterialResources[0]; 
 
         foreach (var lPrefabInfo in PrefabInfoList)
         {
             nameToPrefab[lPrefabInfo.name] = lPrefabInfo.prefab;
         }
+        nameToPrefab["paintingObject"] = paintingObjectPrefab;
 
     }
 

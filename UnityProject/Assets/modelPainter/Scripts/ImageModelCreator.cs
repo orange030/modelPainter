@@ -164,7 +164,7 @@ public class ImageModelCreator:MonoBehaviour
         var lFitScale = getFitScale(flatModelPainter.modelsSize, modelMaxSize);
         var lScale = new Vector3(lFitScale.x, lFitScale.y, 1.0f);
         lModelsTransform.localScale = lScale;
-        nowPainterOutData.paintingModelDatas = new PaintingModelData[lModelsTransform.childCount];
+        nowPainterOutData.paintingModels = new GenericResource<PaintingModelData>[lModelsTransform.childCount];
         nowPainterOutData.transforms = new zzTransform[lModelsTransform.childCount];
         int i = 0;
         foreach (Transform lSub in lModelsTransform)
@@ -175,7 +175,8 @@ public class ImageModelCreator:MonoBehaviour
 
             //useImageMaterial(lPaintingMesh);
 
-            nowPainterOutData.paintingModelDatas[i] = lModelData;
+            nowPainterOutData.paintingModels[i]
+                = new GenericResource<PaintingModelData>( lModelData );
             nowPainterOutData.transforms[i] = new zzTransform(lSub);
 
 
@@ -193,12 +194,12 @@ public class ImageModelCreator:MonoBehaviour
     class PainterOutData
     {
         public Texture2D modelImage;
-        public PaintingModelData[] paintingModelDatas;
+        public GenericResource<PaintingModelData>[] paintingModels;
         public zzTransform[] transforms;
 
         public bool haveModelData
         {
-            get{ return paintingModelDatas!=null ;}
+            get{ return paintingModels!=null ;}
         }
     }
 
@@ -365,15 +366,14 @@ public class ImageModelCreator:MonoBehaviour
     {
         List<GameObject> lModelList = new List<GameObject>();
 
-        for (int i=0;i<pPainterOutData.paintingModelDatas.Length;++i)
+        for (int i=0;i<pPainterOutData.paintingModels.Length;++i)
         {
-            GameObject lGameObject = (GameObject)Instantiate(GameSystem.Singleton.paintingObjectPrefab);
+            GameObject lGameObject = GameSystem.Singleton.createObject("paintingObject");
             lModelList.Add(lGameObject);
             var lPaintingMesh
-                = PaintingMesh.create(lGameObject,pPainterOutData.paintingModelDatas[i]);
+                = PaintingMesh.create(lGameObject,pPainterOutData.paintingModels[i]);
             lPaintingMesh.useImageMaterial(pPainterOutData.modelImage);
             pPainterOutData.transforms[i].setToTransform(lGameObject.transform);
-            lGameObject.GetComponent<RenderMaterialProperty>().paintRenderer = lPaintingMesh.paintRenderer;
         }
         addModelObjects(lModelList.ToArray());
 

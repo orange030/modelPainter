@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class AddObjectToManager:MonoBehaviour
+public class AddObjectToManager : MonoBehaviour, IEnumerable
 {
     public SceneManager sceneManager;
     public PlayStateManager playStateManager;
@@ -10,5 +10,10 @@ public class AddObjectToManager:MonoBehaviour
     {
         sceneManager.addObject(pObject);
         playStateManager.updateObject(pObject);
+    }
+
+    public IEnumerator GetEnumerator()
+    {
+        return sceneManager.GetEnumerator();
     }
 }

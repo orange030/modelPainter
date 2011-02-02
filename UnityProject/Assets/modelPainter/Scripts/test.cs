@@ -61,11 +61,12 @@ class test : MonoBehaviour
         //this.GetType().GetMethod("testEnum").Invoke(
         //    this,
         //    new object[]{System.Enum.Parse( System.Type.GetType(typeName), tEnum.e2.ToString() )}
-        //    );        
-        this.GetType().GetMethod("testEnum").Invoke(
-            this,
-            new object[] { tEnum.e2.ToString() }
-            );
+        //    );  
+      
+        //this.GetType().GetMethod("testEnum").Invoke(
+        //    this,
+        //    new object[] { tEnum.e2.ToString() }
+        //    );
     }
 
     void OnTriggerStay(Collider other)

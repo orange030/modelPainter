@@ -12,7 +12,7 @@ public class RenderMaterialResource
 
 public class RenderMaterialProperty:MonoBehaviour
 {
-
+    [SerializeField]
     private Material _sharedMaterial;
 
     public Material sharedMaterial
@@ -29,13 +29,23 @@ public class RenderMaterialProperty:MonoBehaviour
     [SerializeField]
     private Material _material;
 
-    ResourceType _resourceType;
+    ResourceType _resourceType = ResourceType.unknown;
+
+    void Awake()
+    {
+        _resourceType = ResourceType.unknown;
+    }
 
     void Start()
     {
-        if (_resourceType== ResourceType.builtin)
+        //if (_resourceType== ResourceType.builtin)
+        //{
+        //    sharedMaterial = _meshRenderer.material;
+        //}
+        if (_resourceType == ResourceType.unknown)
         {
-            sharedMaterial = _meshRenderer.material;
+            _resourceType = ResourceType.builtin;
+            updateMaterial();
         }
     }
 
@@ -45,7 +55,7 @@ public class RenderMaterialProperty:MonoBehaviour
         {
             Destroy(_material);
             _material = null;
-            _sharedMaterial = null;
+            //_sharedMaterial = null;
         }
     }
 
@@ -54,6 +64,7 @@ public class RenderMaterialProperty:MonoBehaviour
     [SerializeField]
     Vector2 _extraTextureOffset = Vector2.zero;
 
+    [zzSerialize]
     public Vector2 extraTextureOffset
     {
         get { return _extraTextureOffset; }
@@ -68,6 +79,7 @@ public class RenderMaterialProperty:MonoBehaviour
     [SerializeField]
     Vector2 _extraTextureScale = new Vector2(1.0f, 1.0f);
 
+    [zzSerialize]
     public Vector2 extraTextureScale
     {
         get { return _extraTextureScale; }
@@ -100,6 +112,40 @@ public class RenderMaterialProperty:MonoBehaviour
 
     public string materialName;
 
+    [zzSerialize]
+    public string resourceID
+    {
+        get { return materialName; }
+        set
+        {
+            materialName = value;
+            if (_resourceType != ResourceType.unknown)
+                updateMaterial();
+        }
+    }
+
+    [zzSerialize]
+    public string resourceTypeID
+    {
+        get { return _resourceType.ToString(); }
+        set
+        {
+            _resourceType = (ResourceType)System.Enum.Parse(typeof(ResourceType), value);
+            if (materialName.Length > 0)
+                updateMaterial();
+        }
+    }
+
+    public void updateMaterial()
+    {
+        switch(_resourceType)
+        {
+            case ResourceType.builtin:
+                setMaterial(GameSystem.Singleton.getRenderMaterial(materialName));
+                break;
+        }
+    }
+
     //public string imageName;
 
     public Material material
@@ -107,6 +153,7 @@ public class RenderMaterialProperty:MonoBehaviour
         get { return _material; }
         set
         {
+            releaseMaterial();
             _material = value;
             _meshRenderer.material = value;
             updateTextureTransform();
@@ -127,7 +174,6 @@ public class RenderMaterialProperty:MonoBehaviour
 
     public void setMaterial(RenderMaterialResource pRenderMaterialInfo)
     {
-        releaseMaterial();
         sharedMaterial = pRenderMaterialInfo.material;
         materialName = pRenderMaterialInfo.materialName;
 

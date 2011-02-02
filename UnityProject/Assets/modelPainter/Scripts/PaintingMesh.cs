@@ -143,20 +143,57 @@ public class PaintingModelData
 
 public class PaintingMesh : zzEditableObject
 {
+    GenericResource<PaintingModelData> _modelResource;
+
+    public GenericResource<PaintingModelData> modelResource
+    {
+        get { return _modelResource; }
+        set 
+        {
+            _modelResource = value;
+            modelData = value.resource;
+            modelName = value.resourceID;
+            _resourceType = value.resourceType;
+        }
+    }
+
+    void Awake()
+    {
+        var lRenderMaterialProperty = gameObject.GetComponent<RenderMaterialProperty>();
+        if(lRenderMaterialProperty)
+            lRenderMaterialProperty.paintRenderer
+                = transform.Find("Render").GetComponent<MeshRenderer>();
+    }
+
+    public static PaintingMesh create(GameObject lObject, GenericResource<PaintingModelData> pResource)
+    {
+        PaintingMesh lOut = create(lObject, pResource.resource);
+        lOut.modelResource = pResource;
+        return lOut;
+    }
+
     public static PaintingMesh  create(GameObject lObject,PaintingModelData pData)
     {
         //print("GameObject" + lObject.name);
         Transform lTransform = lObject.transform;
-        var lOut = lObject.AddComponent<PaintingMesh>();
+        var lOut = lObject.GetComponent<PaintingMesh>();
+
         lOut.modelData = pData;
-        var lRenderObject = new GameObject("Render");
-        lOut.paintRenderer = lRenderObject.AddComponent<MeshRenderer>();
-        lRenderObject.AddComponent<MeshFilter>().mesh = pData.renderMesh.mesh;
-        lRenderObject.transform.parent = lTransform;
-        pData.renderMesh.setToTransform(lRenderObject.transform);
+        {
+            //图形模型
+            //var lRenderObject = new GameObject("Render");
+            var lRenderObject = lObject.transform.Find("Render").gameObject;
+            lOut.paintRenderer = lRenderObject.GetComponent<MeshRenderer>();
+            lRenderObject.GetComponent<MeshFilter>().mesh = pData.renderMesh.mesh;
+            lRenderObject.transform.parent = lTransform;
+            pData.renderMesh.setToTransform(lRenderObject.transform);
+
+        }
+
         int i = 0;
         foreach (var lColliderMeshes in pData.colliderMeshes)
         {
+            //物理模型
             var lColliderObject = new GameObject("Collider" + i);
             lColliderObject.transform.parent = lTransform;
             var lMeshCollider = lColliderObject.AddComponent<MeshCollider>();
@@ -176,6 +213,40 @@ public class PaintingMesh : zzEditableObject
         lLocalScale.Scale(pScale);
         transform.localScale = lLocalScale;
     }
+
+
+    public PaintingModelData modelData;
+    public string modelName;
+
+    [zzSerialize]
+    public string resourceID
+    {
+        get { return modelName; }
+        set
+        {
+            modelName = value;
+            if (_resourceType != ResourceType.unknown)
+                updateModel();
+        }
+    }
+
+    void updateModel()
+    {
+        create(gameObject, GameResourceManager.Main.getModel(modelName));
+    }
+
+    [zzSerialize]
+    public string resourceTypeID
+    {
+        get { return _resourceType.ToString(); }
+        set
+        {
+            _resourceType = (ResourceType)System.Enum.Parse(typeof(ResourceType), value);
+            if (modelName.Length > 0)
+                updateModel();
+        }
+    }
+    //----------------------------------------------
 
     [SerializeField]
     Vector2 _extraTextureOffset = Vector2.zero;
@@ -197,21 +268,18 @@ public class PaintingMesh : zzEditableObject
     public Vector2 extraTextureScale
     {
         get { return _extraTextureScale; }
-        set 
+        set
         {
             _extraTextureScale = value;
             var lMainTextureScale = material.mainTextureScale;
-            lMainTextureScale.Scale(_extraTextureScale) ;
+            lMainTextureScale.Scale(_extraTextureScale);
             material.mainTextureScale = lMainTextureScale;
         }
     }
 
-
     public string materialName;
     public bool useCustomImage = false;
     public string imageName;
-
-    public PaintingModelData modelData;
 
     public Material sharedMaterial;
 
