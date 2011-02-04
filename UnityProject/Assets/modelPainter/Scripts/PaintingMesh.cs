@@ -157,12 +157,13 @@ public class PaintingMesh : zzEditableObject
         }
     }
 
-    void Awake()
+    new void Awake()
     {
         var lRenderMaterialProperty = gameObject.GetComponent<RenderMaterialProperty>();
         if(lRenderMaterialProperty)
             lRenderMaterialProperty.paintRenderer
                 = transform.Find("Render").GetComponent<MeshRenderer>();
+        base.Awake();
     }
 
     public static PaintingMesh create(GameObject lObject, GenericResource<PaintingModelData> pResource)
@@ -206,14 +207,6 @@ public class PaintingMesh : zzEditableObject
     }
 
     ResourceType _resourceType;
-
-    public override void transformScale(Vector3 pScale)
-    {
-        var lLocalScale = transform.localScale;
-        lLocalScale.Scale(pScale);
-        transform.localScale = lLocalScale;
-    }
-
 
     public PaintingModelData modelData;
     public string modelName;

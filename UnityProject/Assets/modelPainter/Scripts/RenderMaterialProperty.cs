@@ -12,6 +12,29 @@ public class RenderMaterialResource
 
 public class RenderMaterialProperty:MonoBehaviour
 {
+    GenericResource<Texture2D> _imageResource;
+
+    public void useImageMaterial(Texture2D pTexture)
+    {
+        var lMaterial = new Material(Shader.Find("Diffuse"));
+        lMaterial.mainTexture = pTexture;
+        _sharedMaterial = null;
+        material = lMaterial;
+    }
+
+    public GenericResource<Texture2D> imageResource
+    {
+        get { return _imageResource; }
+        set 
+        { 
+            _imageResource = value;
+            _resourceType = value.resourceType;
+            materialName = value.resourceID;
+            useImageMaterial(value.resource);
+        }
+    }
+
+
     [SerializeField]
     private Material _sharedMaterial;
 
@@ -30,6 +53,11 @@ public class RenderMaterialProperty:MonoBehaviour
     private Material _material;
 
     ResourceType _resourceType = ResourceType.unknown;
+
+    public ResourceType resourceType
+    {
+        get { return _resourceType; }
+    }
 
     void Awake()
     {
@@ -143,6 +171,9 @@ public class RenderMaterialProperty:MonoBehaviour
             case ResourceType.builtin:
                 setMaterial(GameSystem.Singleton.getRenderMaterial(materialName));
                 break;
+            case ResourceType.realTime:
+                imageResource = GameResourceManager.Main.getImage(resourceID);
+                break;
         }
     }
 
@@ -176,6 +207,7 @@ public class RenderMaterialProperty:MonoBehaviour
     {
         sharedMaterial = pRenderMaterialInfo.material;
         materialName = pRenderMaterialInfo.materialName;
+        _resourceType = pRenderMaterialInfo.resourceType;
 
     }
 

@@ -237,6 +237,13 @@ public class FlatModelCreator : MonoBehaviour
         return true;
     }
 
+    [ContextMenu("clear")]
+    public void clear()
+    {
+        step = Step.nothing;
+        Destroy(models);
+    }
+
     static GameObject createFlatCollider(Vector2[] points, string pName, Transform parent, float zThickness)
     {
         GameObject lOut = new GameObject(pName);

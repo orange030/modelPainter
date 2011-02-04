@@ -80,147 +80,98 @@ public enum ResourceType
     realTime,
 }
 
-//public class ModelResourceManager
-//{
-//    GenericResourceManager<PaintingModelData> projectResourceManager;
-//    GenericResourceManager<PaintingModelData> realTimeResourceManager;
+//----------------------------------------------------------
 
-//    public GenericResource<PaintingModelData> addResource(ResourceType pType,
-//        PaintingModelData pData)
-//    {
-//        return addResource(pType, pData, pResource, System.Guid.NewGuid().ToString());
-//    }
+public class SceneModelReader:SceneReader<PaintingModelData>
+{
+    public SceneModelReader()
+    {
+        fileExtensionFilter = "*.pmb";
+    }
 
-//    public GenericResourceManager<PaintingModelData> getManager(ResourceType pType)
-//    {
-//        GenericResourceManager<PaintingModelData> lManager = null;
-//        switch (pType)
-//        {
-//            case ResourceType.project:
-//                lManager = projectResourceManager;
-//                break;
-//            case ResourceType.realTime:
-//                lManager = realTimeResourceManager;
-//                break;
-//            default:
-//                Debug.LogError("addResource:" + pType);
-//        }
-//        return lManager;
-//    }
+    public override PaintingModelData readData(string pFullName)
+    {
+        PaintingModelData lOut;
+        using (var lFile = new FileStream(pFullName, FileMode.Open))
+        {
+            StreamReader lStreamReader = new StreamReader(lFile);
+            lOut = PaintingModelData.createDataFromString(lStreamReader.ReadToEnd());
+        }
+        return lOut;
+    }
+}
 
-//    public GenericResource<PaintingModelData> addResource(ResourceType pType,
-//        PaintingModelData pData, string pResourceId)
-//    {
-//        var lManager = getManager(pType);
-//        var lOut = new GenericResource<PaintingModelData>();
-//        lOut.resource = pData;
-//        lOut.resourceType = pType;
-//        return lManager.addResource(lOut, pResourceId);
-//    }
+public class SceneModelWriter:SceneWriter<PaintingModelData>
+{
+    public SceneModelWriter()
+    {
+        fileExtension = "pmb";
+    }
 
-//    public GenericResource<PaintingModelData> getResource(ResourceType pType,
-//        string pResourceId)
-//    {
-//        var lManager = getManager(pType);
-//        var lResource = lManager.getResource(pResourceId);
-//        if (lResource != null)
-//            return lResource;
+    public override void writeData(PaintingModelData pData, string pFullName)
+    {
+        using (var lFile = new FileStream(pFullName, FileMode.Create))
+        {
+            StreamWriter lWriter = new StreamWriter(lFile);
+            lWriter.AutoFlush = true;
+            lWriter.Write(pData.serializeToString());
+        }
+    }
+}
+//---------------------------------------------------------------
 
-//        if (pType == ResourceType.project)
-//        {
-//            var lData = GameResourceManager.Main.getModelFromGuid(pResourceId);
-//            return addResource(ResourceType.project, lData, pResourceId);
-//        }
 
-//        Debug.LogError("[getResource] Type:" + pType + ", ID: " + pResourceId);
-//        return null;
-//    }
-//}
 
-//public class GameResourceManagerIO
-//{
-//    Dictionary<string, string> mTexGuidToPath = new Dictionary<string, string>();
+public class SceneImageReader : SceneReader<Texture2D>
+{
+    public SceneImageReader()
+    {
+        fileExtensionFilter = "*.png";
+    }
 
-//    Dictionary<string, string> mModelGuidToPath = new Dictionary<string, string>();
+    public override Texture2D readData(string pFullName)
+    {
+        Texture2D lOut = new Texture2D(4, 4, TextureFormat.ARGB32, false); ;
+        using (var lFile = new FileStream(pFullName, FileMode.Open))
+        {
+            BinaryReader lBinaryReader = new BinaryReader(lFile);
+            lOut.LoadImage(lBinaryReader.ReadBytes((int)lFile.Length));
+        }
+        return lOut;
+    }
+}
 
-//    public Texture2D readImage(string pGuid)
-//    {
-//        lOut = new Texture2D(4, 4, TextureFormat.ARGB32, false);
+public class SceneImageWriter : SceneWriter<Texture2D>
+{
+    public SceneImageWriter()
+    {
+        fileExtension = "png";
+    }
 
-//        using (var lImageFile = new FileStream(mTexGuidToPath[pGuid], FileMode.Open))
-//        {
-//            BinaryReader lBinaryReader = new BinaryReader(lImageFile);
-//            lOut.LoadImage(lBinaryReader.ReadBytes((int)lImageFile.Length));
-//        }
-//        return lOut;
+    public override void writeData(Texture2D pData, string pFullName)
+    {
+        using (var lFile = new FileStream(pFullName, FileMode.Create))
+        {
+            BinaryWriter lWriter = new BinaryWriter(lFile);
+            lWriter.Write(pData.EncodeToPNG());
+        }
+    }
+}
 
-//    }
 
-//    public PaintingModelData readModel(string pGuid)
-//    {
-//        PaintingModelData lOut;
-//        using (var lModelFile = new FileStream(mModelGuidToPath[pGuid], FileMode.Open))
-//        {
-//            StreamReader lStreamReader = new StreamReader(lModelFile);
-//            lOut = PaintingModelData.createDataFromString(lStreamReader.ReadToEnd());
-//        }
-//        return lOut;
-//    }
-
-//    public static string getFileGuid(FileInfo pFile)
-//    {
-//        return Path.GetFileNameWithoutExtension(pFile.FullName);
-//    }
-
-//    public void saveModel(PaintingModelData pData,string pName)
-//    {
-//        using (var lImageFile = new FileStream(rootDirectory + "/" + pName,
-//            FileMode.Create))
-//        {
-//            StreamWriter lWriter = new StreamWriter(lImageFile);
-//            lWriter.Write(lModelDataSave.Key.serializeToString());
-//        }
-
-//    }
-
-//    private string _rootDirectory;
-
-//    public string rootDirectory
-//    {
-//        get { return _rootDirectory; }
-//        set
-//        { 
-//            _rootDirectory = value;
-//            scanDirectory(_rootDirectory);
-//        }
-//    }
-
-//    void scanDirectory(string pDirectory)
-//    {
-//        DirectoryInfo lDirectory = new DirectoryInfo(pDirectory);
-//        foreach (var lTexFile in lDirectory.GetFiles("*.png"))
-//        {
-//            mTexGuidToPath[getFileGuid(lTexFile)] = lTexFile.FullName;
-//        }
-//        foreach (var lModelFile in lDirectory.GetFiles("*.pmb"))
-//        {
-//            mModelGuidToPath[getFileGuid(lModelFile)] = lModelFile.FullName;
-//        }
-//    }
-
-//}
-
-public class SceneReader
+public abstract class SceneReader<T>
 {
     string rootDictionary;
 
     Dictionary<string, string> nameToPath = new Dictionary<string, string>();
-    Dictionary<string, GenericResource<PaintingModelData>> nameToData = new Dictionary<string, GenericResource<PaintingModelData>>();
+    Dictionary<string, GenericResource<T>> nameToData = new Dictionary<string, GenericResource<T>>();
+
+    protected string fileExtensionFilter = "*.pmb";
 
     void scanDirectory(string pDirectory)
     {
         DirectoryInfo lDirectory = new DirectoryInfo(pDirectory);
-        foreach (var lFile in lDirectory.GetFiles("*.pmb"))
+        foreach (var lFile in lDirectory.GetFiles(fileExtensionFilter))
         {
             nameToPath[getFileName(lFile)] = lFile.FullName;
         }
@@ -237,12 +188,12 @@ public class SceneReader
         scanDirectory(rootDirName);
     }
 
-    public GenericResource<PaintingModelData> getModel(string pID)
+    public GenericResource<T> getData(string pID)
     {
-        GenericResource<PaintingModelData> lOut = null;
+        GenericResource<T> lOut = null;
         if(!nameToData.ContainsKey(pID))
         {
-            lOut = new GenericResource<PaintingModelData>(_getModel(nameToPath[pID]), pID);
+            lOut = new GenericResource<T>(readData(nameToPath[pID]), pID);
             nameToData[pID] = lOut;
         }
         else
@@ -254,26 +205,17 @@ public class SceneReader
     //{
 
     //}
-
-    static PaintingModelData _getModel(string pFullName)
-    {
-        PaintingModelData lOut;
-        using (var lFile = new FileStream(pFullName, FileMode.Open))
-        {
-            StreamReader lStreamReader = new StreamReader(lFile);
-            lOut = PaintingModelData.createDataFromString(lStreamReader.ReadToEnd());
-        }
-        return lOut;
-    }
+    public abstract T readData(string pFullName);
 
     public void endReadScene()
     {
     }
 
 }
-public class SceneWriter
+public abstract class SceneWriter<T>
 {
     string rootDictionary;
+    protected string fileExtension = "pmb";
 
     HashSet<string> savedModelID = new HashSet<string>();
 
@@ -282,30 +224,16 @@ public class SceneWriter
         rootDictionary = rootDirName;
     }
 
-    public void saveModel(GenericResource<PaintingModelData> pResourceData)
+    public void saveData(GenericResource<T> pResourceData)
     {
         string lDataID = pResourceData.resourceID;
         if (!savedModelID.Contains(lDataID))
         {
-            _saveModel(pResourceData.resource, rootDictionary + "/" + lDataID + ".pmb");
+            writeData(pResourceData.resource, rootDictionary + "/" + lDataID + "." + fileExtension);
             savedModelID.Add(lDataID);
         }
     }
-
-    static void _saveModel(PaintingModelData pData,string pFullName)
-    {
-        using (var lFile =new FileStream(pFullName, FileMode.Create))
-        {
-            StreamWriter lWriter = new StreamWriter(lFile); 
-            lWriter.AutoFlush = true;
-            lWriter.Write(pData.serializeToString());
-        }
-    }
-
-    //public void saveImage(GenericResource<Texture2D> pResourceData)
-    //{
-
-    //}
+    public abstract void writeData(T pData, string pFullName);
 
     public void endSaveScene()
     {
@@ -330,8 +258,11 @@ public class GameResourceManager:MonoBehaviour
         get { return singletonInstance; }
     }
 
-    SceneReader sceneReader = new SceneReader();
-    SceneWriter sceneWriter = new SceneWriter();
+    SceneModelReader sceneModelReader = new SceneModelReader();
+    SceneModelWriter sceneModelWriter = new SceneModelWriter();
+
+    SceneImageReader sceneImageReader = new SceneImageReader();
+    SceneImageWriter sceneImageWriter = new SceneImageWriter();
 
     public SerializeScene serializeScene;
 
@@ -350,12 +281,17 @@ public class GameResourceManager:MonoBehaviour
 
     public GenericResource<PaintingModelData> getModel(string pID)
     {
-        return sceneReader.getModel(pID);
+        return sceneModelReader.getData(pID);
+    }
+
+    public GenericResource<Texture2D> getImage(string pID)
+    {
+        return sceneImageReader.getData(pID);
     }
 
     public string sceneFileName = "main.zzScene";
 
-    string fullPath;
+    public string fullPath;
 
     [ContextMenu("save")]
     public void save()
@@ -363,7 +299,8 @@ public class GameResourceManager:MonoBehaviour
         if (!Directory.Exists(fullPath))
             Directory.CreateDirectory(fullPath);
 
-        sceneWriter.beginSaveScene(fullPath);
+        sceneModelWriter.beginSaveScene(fullPath);
+        sceneImageWriter.beginSaveScene(fullPath);
         var lSceneSave = zzSerializeString.Singleton.pack(serializeScene.serializeTo());
         using (var lSceneFile = new FileStream(fullPath + "/" + sceneFileName,
             FileMode.Create))
@@ -377,15 +314,24 @@ public class GameResourceManager:MonoBehaviour
         {
             var lPaintingMesh = lObject.GetComponent<PaintingMesh>();
             if (lPaintingMesh)
-                sceneWriter.saveModel(lPaintingMesh.modelResource);
+                sceneModelWriter.saveData(lPaintingMesh.modelResource);
+
+            var lRenderMaterial = lObject.GetComponent<RenderMaterialProperty>();
+            if (lRenderMaterial && lRenderMaterial.resourceType == ResourceType.realTime)
+                sceneImageWriter.saveData(lRenderMaterial.imageResource);
         }
-        sceneWriter.endSaveScene();
+        sceneModelWriter.endSaveScene();
+        sceneImageWriter.endSaveScene();
     }
 
     [ContextMenu("load")]
     public void load()
     {
-        sceneReader.beginReadScene(fullPath);
+        if (File.Exists(fullPath))
+            fullPath = (new FileInfo(fullPath)).DirectoryName;
+
+        sceneModelReader.beginReadScene(fullPath);
+        sceneImageReader.beginReadScene(fullPath);
         string lSceneSave;
         using (var lSceneFile = new FileStream(fullPath + "/" + sceneFileName,
             FileMode.Open))
@@ -394,7 +340,8 @@ public class GameResourceManager:MonoBehaviour
             lSceneSave = lStreamReader.ReadToEnd();
         }
         serializeScene.serializeFrom(zzSerializeString.Singleton.unpackToData(lSceneSave));
-        sceneWriter.endSaveScene();
+        sceneModelReader.endReadScene();
+        sceneImageReader.endReadScene();
     }
 }
 
