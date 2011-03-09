@@ -29,7 +29,16 @@ public class EditableObjectScale : ObjectPickBase
         editableObject = lEditableObject;
         lEditableObject.draged = true;
         dragMode = pMode;
-
+        var lObjectScale = lEditableObject.transform.localScale;
+        switch (dragMode)
+        {
+            case DragMode.XY:
+                scaleValue = Mathf.Sqrt(lObjectScale.x * lObjectScale.x + lObjectScale.y * lObjectScale.y) * 0.01f;
+                break;
+            case DragMode.XZ:
+                scaleValue = Mathf.Sqrt(lObjectScale.x * lObjectScale.x + lObjectScale.z * lObjectScale.z) * 0.01f;
+                break;
+        }
         lastMousePosition = getMousePosition();
     }
 
