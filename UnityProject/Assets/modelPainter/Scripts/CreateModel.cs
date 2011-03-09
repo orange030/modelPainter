@@ -13,7 +13,7 @@ public class CreateModel : MonoBehaviour
     public Vector2 modelMaxSize;
     public Material modelMaterial;
 
-    public SceneManager sceneManager;
+    public zzSceneManager sceneManager;
 
     static Vector2 getFitSize(Vector2 pRealSize, Vector2 pMaxSize)
     {

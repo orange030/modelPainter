@@ -3,7 +3,7 @@ using System.Collections;
 
 public class AddObjectToManager : MonoBehaviour, IEnumerable
 {
-    public SceneManager sceneManager;
+    public zzSceneManager sceneManager;
     public PlayStateManager playStateManager;
 
     public void addObject(GameObject pObject)
