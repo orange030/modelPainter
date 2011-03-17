@@ -14,7 +14,7 @@ public class zzEditableObject : MonoBehaviour
         {
             rigidbody.isKinematic = _fixed;
             rigidbody.useGravity = _useGravity;
-            rigidbody.freezeRotation = _freezeRotation;
+            rigidbody.constraints = rigidbodyConstraints;
         }
         else
         {
@@ -96,23 +96,87 @@ public class zzEditableObject : MonoBehaviour
         }
     }
 
-    bool _freezeRotation;
+    bool _freezeXRotation;
+    bool _freezeYRotation;
+    bool _freezeZRotation;
 
-    [zzSerialize]
-    [FieldUI("冻结旋转")]
-    public bool freezeRotation
+    RigidbodyConstraints rigidbodyConstraints
     {
-        get { return _freezeRotation; }
-        set 
+        get
         {
-            _freezeRotation = value;
-            if (_inPlaying)
-            {
-                rigidbody.freezeRotation = _freezeRotation;
-                rigidbody.WakeUp();
-            }
+            RigidbodyConstraints lOut = RigidbodyConstraints.None;
+            if (_freezeXRotation)
+                lOut |= RigidbodyConstraints.FreezeRotationX;
+            if (_freezeYRotation)
+                lOut |= RigidbodyConstraints.FreezeRotationY;
+            if (_freezeZRotation)
+                lOut |= RigidbodyConstraints.FreezeRotationZ;
+            return lOut;
         }
     }
+
+    void updateFreeze()
+    {
+        if (_inPlaying)
+        {
+            rigidbody.constraints = rigidbodyConstraints;
+        }
+    }
+
+    [LabelUI( verticalDepth=0, horizontalDepth=0 )]
+    public const string freezeRotationLabel = "冻结旋转";
+
+    [zzSerialize]
+    [FieldUI("X", verticalDepth = 0, horizontalDepth = 1)]
+    public bool freezeXRotation
+    {
+        get { return _freezeXRotation; }
+        set 
+        {
+            _freezeXRotation = value;
+            updateFreeze();
+        }
+    }
+
+    [zzSerialize]
+    [FieldUI("Y", verticalDepth = 0, horizontalDepth = 2)]
+    public bool freezeYRotation
+    {
+        get { return _freezeYRotation; }
+        set
+        {
+            _freezeYRotation = value;
+            updateFreeze();
+        }
+    }
+
+    [zzSerialize]
+    [FieldUI("Z", verticalDepth = 0, horizontalDepth = 3)]
+    public bool freezeZRotation
+    {
+        get { return _freezeZRotation; }
+        set
+        {
+            _freezeZRotation = value;
+            updateFreeze();
+        }
+    }
+
+    //[zzSerialize]
+    //[FieldUI("冻结旋转")]
+    //public bool freezeRotation
+    //{
+    //    get { return _freezeRotation; }
+    //    set 
+    //    {
+    //        _freezeRotation = value;
+    //        if (_inPlaying)
+    //        {
+    //            rigidbody.freezeRotation = _freezeRotation;
+    //            rigidbody.WakeUp();
+    //        }
+    //    }
+    //}
 
     [SerializeField]
     GameObjectType _gameObjectType;

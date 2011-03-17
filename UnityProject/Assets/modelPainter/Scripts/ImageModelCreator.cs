@@ -19,7 +19,6 @@ public class ImageModelCreator:MonoBehaviour
     public Transform modelTransform;
     public Vector2 modelMaxSize;
 
-
     static Vector2 getFitSize(Vector2 pRealSize, Vector2 pMaxSize)
     {
         float lWidth = pRealSize.x;
@@ -97,7 +96,8 @@ public class ImageModelCreator:MonoBehaviour
 
     }
 
-    FlatModelCreator flatModelPainter;
+    public zzModelPainterProcessor modelPainterProcessor;
+    public zzModelPainterControl modelPainterControl;
 
     [ButtonUI("绘制模型")]
     public void drawModel()
@@ -110,10 +110,10 @@ public class ImageModelCreator:MonoBehaviour
             }
             else
             {
-                flatModelPainter = GetComponent<FlatModelCreator>();
+                //modelPainterProcessor = GetComponent<FlatModelCreator>();
 
-                flatModelPainter.picture = nowPainterOutData.modelImage.resource;
-                flatModelPainter.thickness = 1.0f;
+                modelPainterProcessor.picture = nowPainterOutData.modelImage.resource;
+                modelPainterProcessor.thickness = 1.0f;
                 drawTimer = gameObject.AddComponent<zzCoroutineTimer>();
                 drawTimer.setImpFunction(stepDrawModel);
 
@@ -147,12 +147,12 @@ public class ImageModelCreator:MonoBehaviour
 
     void stepDrawModel()
     {
-        if (!flatModelPainter.doStep())
+        if (!modelPainterControl.doStep())
         {
             Destroy(drawTimer);
-            toModelData(flatModelPainter.models.transform,nowPainterOutData);
+            toModelData(modelPainterProcessor.models.transform,nowPainterOutData);
 
-            flatModelPainter.clear();
+            modelPainterControl.clear();
             Destroy(drawTimer);
             createObject(nowPainterOutData);
         }
@@ -161,17 +161,22 @@ public class ImageModelCreator:MonoBehaviour
     void toModelData(Transform lModelsTransform, PainterOutData pOut)
     {
         lModelsTransform.position = modelTransform.position;
-        var lFitScale = getFitScale(flatModelPainter.modelsSize, modelMaxSize);
+        var lFitScale = getFitScale(modelPainterProcessor.modelsSize, modelMaxSize);
         var lScale = new Vector3(lFitScale.x, lFitScale.y, 1.0f);
         lModelsTransform.localScale = lScale;
-        nowPainterOutData.paintingModels = new GenericResource<PaintingModelData>[lModelsTransform.childCount];
-        nowPainterOutData.transforms = new zzTransform[lModelsTransform.childCount];
+        //nowPainterOutData.paintingModels = new GenericResource<PaintingModelData>[lModelsTransform.childCount];
+        //nowPainterOutData.transforms = new zzTransform[lModelsTransform.childCount];
+        //nowPainterOutData.modelTexture = new GenericResource<Texture2D>[lModelsTransform.childCount];
+        nowPainterOutData.modelCount = lModelsTransform.childCount;
         int i = 0;
         foreach (Transform lSub in lModelsTransform)
         {
+            var lTexture = (Texture2D)lSub.Find("Render").GetComponent<Renderer>()
+                .material.mainTexture;
+
             var lGameObject = lSub.gameObject;
             var lModelData = PaintingModelData
-                .createData(lGameObject, flatModelPainter.modelsSize);
+                .createData(lGameObject, lTexture.texelSize);
 
             //useImageMaterial(lPaintingMesh);
 
@@ -179,7 +184,7 @@ public class ImageModelCreator:MonoBehaviour
                 = new GenericResource<PaintingModelData>( lModelData );
             nowPainterOutData.transforms[i] = new zzTransform(lSub);
 
-
+            nowPainterOutData.modelTexture[i] = new GenericResource<Texture2D>(lTexture);
             ++i;
         }
 
@@ -190,6 +195,17 @@ public class ImageModelCreator:MonoBehaviour
         public GenericResource<Texture2D> modelImage;
         public GenericResource<PaintingModelData>[] paintingModels;
         public zzTransform[] transforms;
+        public GenericResource<Texture2D>[] modelTexture;
+
+        public int modelCount
+        {
+            set
+            {
+                paintingModels = new GenericResource<PaintingModelData>[value];
+                transforms = new zzTransform[value];
+                modelTexture = new GenericResource<Texture2D>[value];
+            }
+        }
 
         public bool haveModelData
         {
@@ -367,7 +383,7 @@ public class ImageModelCreator:MonoBehaviour
             var lPaintingMesh
                 = PaintingMesh.create(lGameObject,pPainterOutData.paintingModels[i]);
             //lPaintingMesh.useImageMaterial(pPainterOutData.modelImage);
-            lGameObject.GetComponent<RenderMaterialProperty>().imageResource = pPainterOutData.modelImage;
+            lGameObject.GetComponent<RenderMaterialProperty>().imageResource = pPainterOutData.modelTexture[i];
             pPainterOutData.transforms[i].setToTransform(lGameObject.transform);
         }
         addModelObjects(lModelList.ToArray());

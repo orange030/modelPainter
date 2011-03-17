@@ -67,6 +67,13 @@ public class GameSystem:MonoBehaviour
         get { return singletonInstance; }
     }
 
+    public Material defaultMaterial
+    {
+        get{return _defaultMaterial;}
+    }
+
+    Material _defaultMaterial;
+
     void Awake()
     {
         if (singletonInstance)
@@ -89,8 +96,8 @@ public class GameSystem:MonoBehaviour
         }
 
         //默认材质
-        nameToRenderMaterial[""] = renderMaterialResources[0]; 
-
+        nameToRenderMaterial[""] = renderMaterialResources[0];
+        _defaultMaterial = renderMaterialResources[0].material;
         foreach (var lPrefabInfo in PrefabInfoList)
         {
             nameToPrefab[lPrefabInfo.name] = lPrefabInfo.prefab;

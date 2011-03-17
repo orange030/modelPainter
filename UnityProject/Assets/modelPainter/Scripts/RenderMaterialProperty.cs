@@ -16,7 +16,7 @@ public class RenderMaterialProperty:MonoBehaviour
 
     public void useImageMaterial(Texture2D pTexture)
     {
-        var lMaterial = new Material(Shader.Find("Diffuse"));
+        var lMaterial = new Material(GameSystem.Singleton.defaultMaterial);
         lMaterial.mainTexture = pTexture;
         _sharedMaterial = null;
         material = lMaterial;

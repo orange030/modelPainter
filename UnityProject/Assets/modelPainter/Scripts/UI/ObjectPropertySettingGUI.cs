@@ -38,15 +38,15 @@ public partial class ObjectPropertySetting : MonoBehaviour
 
         public override void OnPropertyGUI(MonoBehaviour pObject)
         {
+            GUILayout.BeginHorizontal();
             foreach (var lUiItem in uiItemList)
             {
-                GUILayout.BeginHorizontal();
                 var lUiType = lUiItem.uiType;
                 lUiType.skin = skin;
                 lUiType.windowRect = windowRect;
                 lUiType.impUI(pObject, lUiItem.memberInfo);
-                GUILayout.EndHorizontal();
             }
+            GUILayout.EndHorizontal();
         }
 
     }
@@ -82,6 +82,7 @@ public partial class ObjectPropertySetting : MonoBehaviour
                 lUiType.windowRect = windowRect;
                 lUiType.impUI(pObject, lUiItem.memberInfo);
                 GUILayout.EndHorizontal();
+                GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
         }
