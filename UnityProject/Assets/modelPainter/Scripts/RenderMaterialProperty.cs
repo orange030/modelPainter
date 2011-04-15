@@ -52,6 +52,7 @@ public class RenderMaterialProperty:MonoBehaviour
     [SerializeField]
     private Material _material;
 
+    [SerializeField]
     ResourceType _resourceType = ResourceType.unknown;
 
     public ResourceType resourceType
@@ -61,7 +62,10 @@ public class RenderMaterialProperty:MonoBehaviour
 
     void Awake()
     {
-        _resourceType = ResourceType.unknown;
+        if (materialName.Length == 0)
+            _resourceType = ResourceType.unknown;
+        if (_material)
+            _material = new Material(_material);
     }
 
     void Start()
@@ -211,14 +215,10 @@ public class RenderMaterialProperty:MonoBehaviour
 
     }
 
-    void OnDisable()
+    void OnDestroy()
     {
-        if (!gameObject.active)
-        {
-            releaseMaterial();
-        }
+        releaseMaterial();
     }
-
 
     static RenderMaterialGUI renderMaterialGUI;
 

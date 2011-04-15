@@ -183,7 +183,8 @@ public class PaintingMesh : zzEditableObject
         {
             //图形模型
             //var lRenderObject = new GameObject("Render");
-            var lRenderObject = lObject.transform.Find("Render").gameObject;
+            var lRenderObjectTransform = lObject.transform.Find("Render");
+            var lRenderObject = lRenderObjectTransform.gameObject;
             lOut.paintRenderer = lRenderObject.GetComponent<MeshRenderer>();
             lRenderObject.GetComponent<MeshFilter>().mesh = pData.renderMesh.mesh;
             lRenderObject.transform.parent = lTransform;

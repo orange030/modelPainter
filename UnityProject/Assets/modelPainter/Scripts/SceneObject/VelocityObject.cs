@@ -14,9 +14,6 @@ class VelocityObject : zzEditableObject
     public Rigidbody myRigidbody;
     public Transform myTransform;
 
-    public override void transformScale(Vector3 pScale)
-    {
-    }
 
     void Start()
     {

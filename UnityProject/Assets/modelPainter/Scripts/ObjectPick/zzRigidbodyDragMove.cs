@@ -95,20 +95,25 @@ class zzRigidbodyDragMove : ObjectPickBase
         OnDragObject(pObject, DragMode.XZ);
     }
 
-    zzEditableObject editableObject;
+    zzEditableObjectContainer editableObject;
 
     void OnDragObject(GameObject pObject,DragMode pMode)
     {
         if (dragMode != DragMode.none)
             return;
-        var lEditableObject = zzEditableObject.findRoot(pObject);
+
+        var lNowDrag = pMode == DragMode.XY ? jointXyDrag : jointXzDrag;
+        if (!lNowDrag)
+            return;
+
+        var lEditableObject = zzEditableObjectContainer.findRoot(pObject);
         if (!lEditableObject)
             return;
         
         editableObject = lEditableObject;
         lEditableObject.draged = true;
         dragMode = pMode;
-        nowDrag = dragMode == DragMode.XY ? jointXyDrag : jointXzDrag;
+        nowDrag = lNowDrag;
         dragedRigidbody = lEditableObject.rigidbody;
         var lDragedTransform = lEditableObject.transform;
         var lDragWorldPos =

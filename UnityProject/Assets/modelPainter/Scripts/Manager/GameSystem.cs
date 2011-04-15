@@ -5,6 +5,64 @@ using System.Collections.Generic;
 
 public class GameSystem:MonoBehaviour
 {
+    //public zzGUILibTreeInfo materialTreeUIInfo;
+
+    //public Transform createObjectTransform;
+
+    [System.Serializable]
+    public class InfoElement
+    {
+        public string name;
+        public Texture2D image;
+        public string showName;
+        public Object data;
+    }
+
+    [System.Serializable]
+    public class InfoNode
+    {
+        public string showName;
+        public Texture2D image;
+        public Texture2D expandedImage;
+        public InfoNode[] nodes = new InfoNode[0];
+        public InfoElement[] elements = new InfoElement[0];
+
+        //public zzGUILibTreeNode GUITreeNode
+        //{
+        //    get
+        //    {
+        //        zzGUILibTreeNode lOut = new zzGUILibTreeNode();
+        //        lOut.name = showName;
+        //        lOut.image = image;
+
+        //        var lGUIElements = new zzGUILibTreeElement[elements.Length];
+        //        for(int i=0;i<elements.Length;++i)
+        //        {
+        //            var lInfoElement = elements[i];
+        //            var lGUIElement = new zzGUILibTreeElement();
+        //            lGUIElement.name = lInfoElement.showName;
+        //            lGUIElement.image = lInfoElement.image;
+        //            lGUIElement.stringData = lInfoElement.name;
+        //            lGUIElements[i] = lGUIElement;
+        //        }
+        //        lOut.elements = lGUIElements;
+
+        //        var lGUINode = new zzGUILibTreeNode[nodes.Length];
+        //        for (int i = 0; i < nodes.Length; ++i)
+        //        {
+        //            lGUINode[i] = nodes[i].GUITreeNode;
+        //        }
+        //        lOut.nodes = lGUINode;
+
+        //        return lOut;
+        //    }
+        //}
+    }
+
+    public InfoNode prefabInfoTree;
+
+    public InfoNode settingInfoTree;
+
     [System.Serializable]
     public class PrefabInfo
     {
@@ -62,6 +120,15 @@ public class GameSystem:MonoBehaviour
 
     public GameObject paintingObjectPrefab;
 
+    public float paintingRenderObjectZ = 0f;
+
+    public Vector3 getRenderObjectPos(Vector3 pPos)
+    {
+        pPos.z = paintingRenderObjectZ;
+        print(pPos);
+        return pPos;
+    }
+
     public static GameSystem Singleton
     {
         get { return singletonInstance; }
@@ -73,6 +140,25 @@ public class GameSystem:MonoBehaviour
     }
 
     Material _defaultMaterial;
+
+    void creatNameToPrefab(InfoNode pInfoNode)
+    {
+        var lElements = pInfoNode.elements;
+        for (int i = 0; i < lElements.Length; ++i)
+        {
+            var lElement = lElements[i];
+            if (lElement.data)
+            {
+                nameToPrefab[lElement.name] = (GameObject)lElement.data;
+            }
+        }
+
+        var lNodes = pInfoNode.nodes;
+        for (int i = 0; i < lNodes.Length; ++i)
+        {
+            creatNameToPrefab(lNodes[i]);
+        }
+    }
 
     void Awake()
     {
@@ -98,10 +184,12 @@ public class GameSystem:MonoBehaviour
         //默认材质
         nameToRenderMaterial[""] = renderMaterialResources[0];
         _defaultMaterial = renderMaterialResources[0].material;
-        foreach (var lPrefabInfo in PrefabInfoList)
-        {
-            nameToPrefab[lPrefabInfo.name] = lPrefabInfo.prefab;
-        }
+
+        //foreach (var lPrefabInfo in PrefabInfoList)
+        //{
+        //    nameToPrefab[lPrefabInfo.name] = lPrefabInfo.prefab;
+        //}
+        creatNameToPrefab(prefabInfoTree);
         nameToPrefab["paintingObject"] = paintingObjectPrefab;
 
     }

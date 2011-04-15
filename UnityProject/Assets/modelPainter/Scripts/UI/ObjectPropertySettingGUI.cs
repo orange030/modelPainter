@@ -45,6 +45,7 @@ public partial class ObjectPropertySetting : MonoBehaviour
                 lUiType.skin = skin;
                 lUiType.windowRect = windowRect;
                 lUiType.impUI(pObject, lUiItem.memberInfo);
+                GUILayout.FlexibleSpace();
             }
             GUILayout.EndHorizontal();
         }
@@ -82,7 +83,6 @@ public partial class ObjectPropertySetting : MonoBehaviour
                 lUiType.windowRect = windowRect;
                 lUiType.impUI(pObject, lUiItem.memberInfo);
                 GUILayout.EndHorizontal();
-                GUILayout.FlexibleSpace();
             }
             GUILayout.EndVertical();
         }
@@ -96,15 +96,15 @@ public partial class ObjectPropertySetting : MonoBehaviour
 
         public CPropertyGUI(UiItem[][] pList)
         {
-            foreach (var lUiItems in pList)
-            {
-                foreach (var lUiItem in lUiItems)
-                {
-                    print(lUiItem.memberInfo.Name + " "
-                        + lUiItem.uiType.verticalDepth
-                        + lUiItem.uiType.horizontalDepth);
-                }
-            }
+            //foreach (var lUiItems in pList)
+            //{
+            //    foreach (var lUiItem in lUiItems)
+            //    {
+            //        print(lUiItem.memberInfo.Name + " "
+            //            + lUiItem.uiType.verticalDepth
+            //            + lUiItem.uiType.horizontalDepth);
+            //    }
+            //}
             uiList = new IPropertyGUI[pList.Length];
             int i = 0;
             foreach (var lUiItems in pList)

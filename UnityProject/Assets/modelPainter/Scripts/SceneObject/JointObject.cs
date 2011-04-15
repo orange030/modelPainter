@@ -4,21 +4,19 @@ using System.Collections.Generic;
 
 public class JointObject : zzEditableObject
 {
-    protected override void applyState()
+
+    public override void applyPlayState()
     {
-        base.applyState();
-        if (play)
+        UpdateJoint();
+    }
+
+    public override void applyPauseState()
+    {
+        foreach (var lJoint in JointList)
         {
-            UpdateJoint();
+            Destroy(lJoint);
         }
-        else
-        {
-            foreach (var lJoint in JointList)
-            {
-                Destroy(lJoint);
-            }
-            JointList = new ConfigurableJoint[0];
-        }
+        JointList = new ConfigurableJoint[0];
     }
 
     //六个扫描序列为x x y y z z

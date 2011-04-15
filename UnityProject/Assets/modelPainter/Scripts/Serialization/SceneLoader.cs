@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+//读取场景的接口
 public class SceneLoader : MonoBehaviour
 {
 

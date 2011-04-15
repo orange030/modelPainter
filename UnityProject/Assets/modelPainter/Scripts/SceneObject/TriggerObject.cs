@@ -5,11 +5,6 @@ class TriggerObject : zzEditableObject
 {
     public OutPoint triggerPoint;
 
-    public override void transformScale(Vector3 pScale)
-    {
-
-    }
-
     bool isTriggered = false;
 
     void Update()

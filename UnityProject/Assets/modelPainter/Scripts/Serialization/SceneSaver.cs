@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+//保存场景的接口
 public class SceneSaver:MonoBehaviour
 {
     [SerializeField]

@@ -10,6 +10,15 @@ public class AddObjectToManager : MonoBehaviour, IEnumerable
     {
         sceneManager.addObject(pObject);
         playStateManager.updateObject(pObject);
+
+        var lPaintingMesh = pObject.GetComponent<PaintingMesh>();
+        if (lPaintingMesh)
+        {
+            var lRenderObjectTransform = lPaintingMesh.transform.Find("Render");
+            lRenderObjectTransform.position = GameSystem.Singleton
+                .getRenderObjectPos(lRenderObjectTransform.position);
+        }
+
     }
 
     public IEnumerator GetEnumerator()

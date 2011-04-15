@@ -7,7 +7,7 @@ public class EditableObjectScale : ObjectPickBase
 
     public float scaleValue = 0.01f;
 
-    zzEditableObject editableObject;
+    zzEditableObjectContainer editableObject;
 
     public Vector2 lastMousePosition;
 
@@ -23,12 +23,13 @@ public class EditableObjectScale : ObjectPickBase
     {
         if (dragMode != DragMode.none)
             return;
-        var lEditableObject = zzEditableObject.findRoot(pObject);
+        var lEditableObject = zzEditableObjectContainer.findRoot(pObject);
         if (!lEditableObject)
             return;
         editableObject = lEditableObject;
         lEditableObject.draged = true;
         dragMode = pMode;
+        //放缩的尺寸基于原始的放缩值
         var lObjectScale = lEditableObject.transform.localScale;
         switch (dragMode)
         {

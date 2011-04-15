@@ -37,11 +37,6 @@ class ForceObject : zzEditableObject
 
     public ConstantForce myConstantForce;
 
-    public override void transformScale(Vector3 pScale)
-    {
-
-    }
-
     void updateForce()
     {
         setForceRate(controlPoint.powerValue);

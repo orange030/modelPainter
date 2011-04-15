@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ObjectPropertyWindow : zzWindow
+public class ObjectPropertyWindow : zzInterfaceGUI
 {
     public ObjectPropertySetting objectPropertySetting;
     public GUISkin objectPropertyUiSkin;
     public Vector2 scrollPosition;
 
-    public override void impWindow(int windowID)
+    public override void impGUI(Rect pRect)
     {
         scrollPosition = GUILayout.BeginScrollView(scrollPosition);
         GUILayout.BeginVertical();
