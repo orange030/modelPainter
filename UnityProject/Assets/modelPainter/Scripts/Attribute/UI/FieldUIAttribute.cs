@@ -7,11 +7,11 @@ using System.Reflection;
 public class FieldUIAttribute:UiAttributeBase
 {
 
-    public string stringBuffer = "";
+    public string stringBuffer = null;
 
     public override void clearBuffer()
     {
-        stringBuffer = "";
+        stringBuffer = null;
     }
 
     public FieldUIAttribute(string labelName)
@@ -27,27 +27,79 @@ public class FieldUIAttribute:UiAttributeBase
         return GUILayout.TextField(text, maxLength);
     }
 
+    public bool isFloat(string pText)
+    {
+        bool lOut = false;
+        try
+        {
+            float.Parse(pText);
+            lOut = true;
+        }
+        catch{}
+        return lOut;
+    }
+
     public void floatField(object pObject, PropertyInfo pPropertyInfo)
     {
-        //无缓存内容时,显示属性内的值
-        if (stringBuffer.Length == 0)
-            stringBuffer
-                = TextField(pPropertyInfo.GetValue(pObject, null).ToString(), 8);
+        float lPreValue = (float)pPropertyInfo.GetValue(pObject, null);
+        ////无内容时 获取初始值
+        //if (stringBuffer.Length == 0)
+        //{
+        //    stringBuffer = lPreValue.ToString();
+        //}
+
+        string lPreText;
+        if(stringBuffer!=null)
+        {
+            lPreText = stringBuffer;
+        }
         else
         {
-            string lNewText = TextField(stringBuffer, 8);
-            if (lNewText != stringBuffer)
+            lPreText = lPreValue.ToString();
+        }
+
+        string lNewText = TextField(lPreText, 8);
+        if(lPreText!=lNewText)
+        {
+            try
+            {
+                pPropertyInfo.SetValue(pObject, float.Parse(lNewText), null);
+                stringBuffer = null;
+            }
+            catch (System.Exception e)
             {
                 stringBuffer = lNewText;
-                try
-                {
-                    pPropertyInfo.SetValue(pObject, float.Parse(stringBuffer), null);
-                }
-                catch (System.Exception e)
-                {
-                }
             }
         }
+
+        //string lNewText;
+        //// 为可用的数字时,更新
+        //if (isFloat(stringBuffer))
+        //{
+        //    string lPreText = lPreValue.ToString();
+        //    lNewText
+        //        = TextField(lPreValue.ToString(), 8);
+        //}
+        ////////无缓存内容时,显示属性内的值
+        //////if (stringBuffer.Length == 0)
+        //////    stringBuffer
+        //////        = TextField(pPropertyInfo.GetValue(pObject, null).ToString(), 8);
+        ////else
+        //{
+        //    lNewText = TextField(stringBuffer, 8);
+        //}
+
+        //if (lNewText != lPreValue.ToString())
+        //{
+        //    stringBuffer = lNewText;
+        //    try
+        //    {
+        //        pPropertyInfo.SetValue(pObject, float.Parse(stringBuffer), null);
+        //    }
+        //    catch (System.Exception e)
+        //    {
+        //    }
+        //}
     }
 
     public void boolField(object pObject, PropertyInfo pPropertyInfo)

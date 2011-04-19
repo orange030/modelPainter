@@ -203,10 +203,14 @@ public partial class ObjectPropertySetting : MonoBehaviour
         {
             UiAttributeBase[] lUIAttributes =
                 (UiAttributeBase[])lMember.GetCustomAttributes(typeof(UiAttributeBase), false);
-            if (lUIAttributes.Length > 0)
+            foreach (var lAttribute in lUIAttributes)
             {
-                lOut.Add(new UiItem(lUIAttributes[0], lMember));
+                lOut.Add(new UiItem(lAttribute, lMember));
             }
+            //if (lUIAttributes.Length > 0)
+            //{
+            //    lOut.Add(new UiItem(lUIAttributes[0], lMember));
+            //}
         }
 
         return lOut.toSortedArray();
