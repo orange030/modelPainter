@@ -13,35 +13,59 @@ public class ImageModelCreator:MonoBehaviour
     public Texture2D image
     {
         get { return _image; }
-        //set { _image = value; }
+        set 
+        { 
+            _image = value;
+            if (previewRenderer)
+                previewRenderer.material.mainTexture = _image;
+            if (_image)
+            {
+                previewTransform.position = modelTransform.position;
+                Vector2 lSize = zzSceneImageGUI.getFitSize(modelMaxSize, _image);
+                previewTransform.localScale = new Vector3(lSize.x, lSize.y, 1f);
+            }
+        }
     }
 
     public Transform modelTransform;
     public Vector2 modelMaxSize;
+    public Transform previewTransform;
+    public Renderer previewRenderer;
 
-    static Vector2 getFitSize(Vector2 pRealSize, Vector2 pMaxSize)
+    void Start()
     {
-        float lWidth = pRealSize.x;
-        float lHeigth = pRealSize.y;
-
-        float lWidthHeigthRate = lWidth / lHeigth;
-
-        if ((pMaxSize.x / pMaxSize.y) > lWidthHeigthRate)
-        {
-            pMaxSize.x = lWidthHeigthRate * pMaxSize.y;
-        }
-        else
-        {
-            pMaxSize.y = pMaxSize.x / lWidthHeigthRate;
-        }
-        return pMaxSize;
+        if (!previewTransform)
+            previewTransform = modelTransform;
     }
 
-    static Vector2 getFitScale(Vector2 pRealSize, Vector2 pMaxSize)
+    //static Vector2 getFitSize(Vector2 pRealSize, Vector2 pMaxSize)
+    //{
+    //    float lWidth = pRealSize.x;
+    //    float lHeigth = pRealSize.y;
+
+    //    float lWidthHeigthRate = lWidth / lHeigth;
+
+    //    if ((pMaxSize.x / pMaxSize.y) > lWidthHeigthRate)
+    //    {
+    //        pMaxSize.x = lWidthHeigthRate * pMaxSize.y;
+    //    }
+    //    else
+    //    {
+    //        pMaxSize.y = pMaxSize.x / lWidthHeigthRate;
+    //    }
+    //    return pMaxSize;
+    //}
+
+    //static Vector2 getFitScale(Vector2 pRealSize, Vector2 pMaxSize)
+    //{
+    //    var lFitSize = getFitSize(pRealSize, pMaxSize);
+    //    Vector2 lOut = new Vector2(lFitSize.x / pRealSize.x, lFitSize.y / pRealSize.y);
+    //    return lOut;
+    //}
+
+    static Vector2 getFitScale(Vector2 pRealSize, Vector2 pWantSize)
     {
-        var lFitSize = getFitSize(pRealSize, pMaxSize);
-        Vector2 lOut = new Vector2(lFitSize.x / pRealSize.x, lFitSize.y / pRealSize.y);
-        return lOut;
+        return new Vector2(pWantSize.x / pRealSize.x, pWantSize.y / pRealSize.y);
     }
 
     void OnDrawGizmos()
@@ -160,10 +184,11 @@ public class ImageModelCreator:MonoBehaviour
 
     void toModelData(Transform lModelsTransform, PainterOutData pOut)
     {
-        lModelsTransform.position = modelTransform.position;
-        var lFitScale = getFitScale(modelPainterProcessor.modelsSize, modelMaxSize);
-        var lScale = new Vector3(lFitScale.x, lFitScale.y, 1.0f);
-        lModelsTransform.localScale = lScale;
+        lModelsTransform.position = Vector3.zero;
+        lModelsTransform.rotation = Quaternion.identity;
+        lModelsTransform.localScale = Vector3.one;
+        //lModelsTransform.position = modelTransform.position;
+
         //nowPainterOutData.paintingModels = new GenericResource<PaintingModelData>[lModelsTransform.childCount];
         //nowPainterOutData.transforms = new zzTransform[lModelsTransform.childCount];
         //nowPainterOutData.modelTexture = new GenericResource<Texture2D>[lModelsTransform.childCount];
@@ -245,7 +270,7 @@ public class ImageModelCreator:MonoBehaviour
             imgPathToData[lFileInfo.ToString()] = nowPainterOutData;
 
         }
-        _image = nowPainterOutData.modelImage.resource;
+        image = nowPainterOutData.modelImage.resource;
 
     }
 
@@ -374,6 +399,9 @@ public class ImageModelCreator:MonoBehaviour
 
     void createObject(PainterOutData pPainterOutData)
     {
+        var lModelParentObject = new GameObject();
+        var lModelsTransform = lModelParentObject.transform;
+
         List<GameObject> lModelList = new List<GameObject>();
 
         for (int i=0;i<pPainterOutData.paintingModels.Length;++i)
@@ -385,8 +413,20 @@ public class ImageModelCreator:MonoBehaviour
             //lPaintingMesh.useImageMaterial(pPainterOutData.modelImage);
             lGameObject.GetComponent<RenderMaterialProperty>().imageResource = pPainterOutData.modelTexture[i];
             pPainterOutData.transforms[i].setToTransform(lGameObject.transform);
+            lGameObject.transform.parent = lModelsTransform;
         }
+
+        var lPreviewLocalScale = previewTransform.localScale;
+        Vector2 lSize = new Vector2(lPreviewLocalScale.x, lPreviewLocalScale.y);
+        var lFitScale = getFitScale(modelPainterProcessor.modelsSize, lSize);
+        var lScale = new Vector3(lFitScale.x, lFitScale.y, 1.0f);
+        lModelsTransform.localScale = lScale;
+        lModelsTransform.rotation = previewTransform.rotation;
+        lModelsTransform.position = previewTransform.position;
+
         addModelObjects(lModelList.ToArray());
+
+        Destroy(lModelParentObject);
 
     }
 
