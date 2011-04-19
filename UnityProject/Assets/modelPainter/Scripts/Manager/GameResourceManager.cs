@@ -305,7 +305,7 @@ public class GameResourceManager:MonoBehaviour
         using (var lSceneFile = new FileStream(fullPath + "/" + sceneFileName,
             FileMode.Create))
         {
-            print(lSceneSave);
+            //print(lSceneSave);
             StreamWriter lStreamWriter = new StreamWriter(lSceneFile);
             lStreamWriter.AutoFlush = true;
             lStreamWriter.Write(lSceneSave);

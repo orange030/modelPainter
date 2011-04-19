@@ -17,9 +17,25 @@ public class SceneLoader : MonoBehaviour
         set { _loadPath = value; }
     }
 
+    System.Action afterLoadEvent;
+
+    public void addAfterLoadEventReceiver(System.Action pReceiver)
+    {
+        afterLoadEvent += pReceiver;
+    }
+
+    void nullEvent() { }
+
+    void Start()
+    {
+        if (afterLoadEvent == null)
+            afterLoadEvent = nullEvent;
+    }
+
     public void load()
     {
         GameResourceManager.Main.fullPath = _loadPath;
         GameResourceManager.Main.load();
+        afterLoadEvent();
     }
 }

@@ -14,6 +14,7 @@ public class AddObjectToManager : MonoBehaviour, IEnumerable
         var lPaintingMesh = pObject.GetComponent<PaintingMesh>();
         if (lPaintingMesh)
         {
+            //设定模型的Z坐标
             var lRenderObjectTransform = lPaintingMesh.transform.Find("Render");
             lRenderObjectTransform.position = GameSystem.Singleton
                 .getRenderObjectPos(lRenderObjectTransform.position);
