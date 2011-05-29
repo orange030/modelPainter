@@ -3,14 +3,44 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class GenericResource<T>
+[System.Serializable]
+public class GenericResourceInfo
+{
+    public ResourceType resourceType = ResourceType.unknown;
+
+    [zzSerialize]
+    public string resourceTypeID
+    {
+        get { return resourceType.ToString(); }
+        set
+        {
+            resourceType = (ResourceType)System.Enum.Parse(typeof(ResourceType), value);
+        }
+    }
+
+    [SerializeField]
+    string _resourceID;
+
+    [zzSerialize]
+    public string resourceID
+    {
+        get { return _resourceID; }
+        set { _resourceID = value; }
+    }
+
+    public string extension = "";
+}
+
+public class GenericResource<T> 
 {
     public GenericResource()
     {
+        info = new GenericResourceInfo();
     }
 
     public GenericResource(T t)
     {
+        info = new GenericResourceInfo();
         resource = t;
         resourceType = ResourceType.realTime;
         resourceID = generateID();
@@ -18,50 +48,84 @@ public class GenericResource<T>
 
     public GenericResource(T t, string pResourceID)
     {
+        info = new GenericResourceInfo();
         resource = t;
         resourceType = ResourceType.realTime;
         resourceID = pResourceID;
     }
 
+    public GenericResource(T t, GenericResourceInfo pInfo)
+    {
+        info = pInfo;
+        resource = t;
+    }
+
     public T resource;
-    public ResourceType resourceType;
-    public string resourceID;
+    public GenericResourceInfo info;
+    public ResourceType resourceType
+    {
+        set { info.resourceType = value; }
+        get { return info.resourceType; }
+    }
+    public string resourceID
+    {
+        set { info.resourceID=value; }
+        get { return info.resourceID; }
+    }
+    public string extension 
+    {
+        set { info.extension = value; }
+        get { return info.extension; }
+    }
     public static string generateID()
     {
         return System.Guid.NewGuid().ToString();
     }
-}
 
-public class GenericResourceManager<T>
-{
-    Dictionary<string, GenericResource<T>> IdToResource
-        = new Dictionary<string,GenericResource<T>>();
-
-    public GenericResource<T>  getResource(string pResourceId)
-    {
-        if (IdToResource.ContainsKey(pResourceId))
-            return IdToResource[pResourceId];
-        else
-            return null;
-    }
-
-    public void setResource(GenericResource<T> pResource,string pResourceId)
-    {
-        IdToResource[pResourceId] = pResource;
-    }
-
-    public GenericResource<T> addResource(GenericResource<T> pResource,string pResourceId)
-    {
-        pResource.resourceID = pResourceId;
-        IdToResource[pResourceId] = pResource;
-        return pResource;
-    }
-
-    //public GenericResource<T> addResource(GenericResource<T> pResource)
+    //public void destroyResource()
     //{
-    //    return addResource(pResource,System.Guid.NewGuid().ToString());
+    //    Object.Destroy(resource);
     //}
 }
+
+//public class GenericResourceManager<T>
+//{
+//    Dictionary<string, GenericResource<T>> IdToResource
+//        = new Dictionary<string,GenericResource<T>>();
+
+//    public GenericResource<T>  getResource(string pResourceId)
+//    {
+//        if (IdToResource.ContainsKey(pResourceId))
+//            return IdToResource[pResourceId];
+//        else
+//            return null;
+//    }
+
+//    public void setResource(GenericResource<T> pResource,string pResourceId)
+//    {
+//        IdToResource[pResourceId] = pResource;
+//    }
+
+//    public GenericResource<T> addResource(GenericResource<T> pResource,string pResourceId)
+//    {
+//        pResource.resourceID = pResourceId;
+//        IdToResource[pResourceId] = pResource;
+//        return pResource;
+//    }
+
+//    public void clearResource()
+//    {
+//        foreach (var lResourceDic in IdToResource)
+//        {
+//            lResourceDic.Value.destroyResource();
+//        }
+//    }
+
+//    //public GenericResource<T> addResource(GenericResource<T> pResource)
+//    //{
+//    //    return addResource(pResource,System.Guid.NewGuid().ToString());
+//    //}
+//}
 
 public enum ResourceType
 {
@@ -99,16 +163,27 @@ public class SceneModelReader:SceneReader<PaintingModelData>
         }
         return lOut;
     }
+
+    public override void clear(GenericResource<PaintingModelData> pData)
+    {
+        var lResource = pData.resource;
+        Object.Destroy(lResource.renderMesh.mesh);
+        foreach (var lColliderMeshe in lResource.colliderMeshes)
+        {
+            Object.Destroy(lColliderMeshe.mesh);
+        }
+    }
 }
 
 public class SceneModelWriter:SceneWriter<PaintingModelData>
 {
     public SceneModelWriter()
     {
-        fileExtension = "pmb";
+        defaultFileExtension = "pmb";
+        extensionToWriteFunc[defaultFileExtension] = writeModelData;
     }
 
-    public override void writeData(PaintingModelData pData, string pFullName)
+    public void writeModelData(PaintingModelData pData, string pFullName)
     {
         using (var lFile = new FileStream(pFullName, FileMode.Create))
         {
@@ -126,7 +201,7 @@ public class SceneImageReader : SceneReader<Texture2D>
 {
     public SceneImageReader()
     {
-        fileExtensionFilter = "*.png";
+        fileExtensionFilter = "*.png|*.jpg|*.jpeg";
     }
 
     public override Texture2D readData(string pFullName)
@@ -139,21 +214,38 @@ public class SceneImageReader : SceneReader<Texture2D>
         }
         return lOut;
     }
+
+    public override void clear(GenericResource<Texture2D> pData)
+    {
+        Object.Destroy(pData.resource);
+    }
 }
 
 public class SceneImageWriter : SceneWriter<Texture2D>
 {
     public SceneImageWriter()
     {
-        fileExtension = "png";
+        defaultFileExtension = "png";
+        extensionToWriteFunc[defaultFileExtension] = writePngData;
+        extensionToWriteFunc["jpg"] = writeJpgData;
+        extensionToWriteFunc["jpeg"] = writeJpgData;
     }
 
-    public override void writeData(Texture2D pData, string pFullName)
+    public void writePngData(Texture2D pData, string pFullName)
     {
         using (var lFile = new FileStream(pFullName, FileMode.Create))
         {
             BinaryWriter lWriter = new BinaryWriter(lFile);
             lWriter.Write(pData.EncodeToPNG());
+        }
+    }
+
+    public void writeJpgData(Texture2D pData, string pFullName)
+    {
+
+        using (var lBitmap = new System.Drawing.Bitmap(new MemoryStream(pData.EncodeToPNG())))
+        {
+            lBitmap.Save(pFullName, System.Drawing.Imaging.ImageFormat.Jpeg);
         }
     }
 }
@@ -171,9 +263,13 @@ public abstract class SceneReader<T>
     void scanDirectory(string pDirectory)
     {
         DirectoryInfo lDirectory = new DirectoryInfo(pDirectory);
-        foreach (var lFile in lDirectory.GetFiles(fileExtensionFilter))
+        var lExtList = fileExtensionFilter.Split('|');
+        foreach (var lExt in lExtList)
         {
-            nameToPath[getFileName(lFile)] = lFile.FullName;
+            foreach (var lFile in lDirectory.GetFiles(lExt))
+            {
+                nameToPath[getFileName(lFile)] = lFile.FullName;
+            }
         }
     }
 
@@ -188,13 +284,24 @@ public abstract class SceneReader<T>
         scanDirectory(rootDirName);
     }
 
+    public GenericResource<T> createData(T t,string pID)
+    {
+        GenericResource<T> lOut = new GenericResource<T>(t, pID);
+        nameToData[pID] = lOut;
+        return lOut;
+    }
+
     public GenericResource<T> getData(string pID)
     {
         GenericResource<T> lOut = null;
         if(!nameToData.ContainsKey(pID))
         {
-            lOut = new GenericResource<T>(readData(nameToPath[pID]), pID);
-            nameToData[pID] = lOut;
+            lOut = createData(readData(nameToPath[pID]), pID);
+            //lOut = new GenericResource<T>(readData(nameToPath[pID]), pID);
+            lOut.extension = Path.GetExtension(nameToPath[pID]);
+            //去除扩展名中的 点
+            lOut.extension = lOut.extension.Substring(1, lOut.extension.Length-1);
+            //nameToData[pID] = lOut;
         }
         else
             lOut = nameToData[pID];
@@ -207,6 +314,16 @@ public abstract class SceneReader<T>
     //}
     public abstract T readData(string pFullName);
 
+    public void clear()
+    {
+        foreach (var lDic in nameToData)
+        {
+            clear(lDic.Value);
+        }
+    }
+
+    public abstract void clear(GenericResource<T> pData);
+
     public void endReadScene()
     {
     }
@@ -214,8 +331,11 @@ public abstract class SceneReader<T>
 }
 public abstract class SceneWriter<T>
 {
+    protected delegate void WriteDataFunc(T pData, string pFullName);
     string rootDictionary;
-    protected string fileExtension = "pmb";
+    protected string defaultFileExtension = "pmb";
+    protected Dictionary<string, WriteDataFunc> extensionToWriteFunc
+        = new Dictionary<string,WriteDataFunc>();
 
     HashSet<string> savedModelID = new HashSet<string>();
 
@@ -229,11 +349,29 @@ public abstract class SceneWriter<T>
         string lDataID = pResourceData.resourceID;
         if (!savedModelID.Contains(lDataID))
         {
-            writeData(pResourceData.resource, rootDictionary + "/" + lDataID + "." + fileExtension);
+            string lExtension = pResourceData.extension;
+            if (lExtension.Length > 0)
+                saveData(pResourceData.resource, lDataID, lExtension);
+            else
+                saveData(pResourceData.resource, lDataID, defaultFileExtension);
             savedModelID.Add(lDataID);
         }
     }
-    public abstract void writeData(T pData, string pFullName);
+
+    public void saveData(T pData, string pDataID, string pFileExtension)
+    {
+        writeData(pData, rootDictionary + "/" + pDataID + "." + pFileExtension, pFileExtension);
+    }
+
+    public void writeData(T pData, string pFullName, string pFileExtension)
+    {
+        //Debug.Log("pFileExtension:"+pFileExtension);
+        //foreach (var lDic in extensionToWriteFunc)
+        //{
+        //    Debug.Log(lDic.Key);
+        //}
+        extensionToWriteFunc[pFileExtension](pData, pFullName);
+    }
 
     public void endSaveScene()
     {
@@ -245,8 +383,17 @@ public abstract class SceneWriter<T>
 public class GameResourceManager:MonoBehaviour
 {
 
+    void OnDestroy()
+    {
+        singletonInstance = null;
+        sceneModelReader.clear();
+        sceneImageReader.clear();
+    }
+
     void Awake()
     {
+        if (singletonInstance)
+            Debug.LogError("zzAllocateViewIDManager");
         singletonInstance = this;
         path = path;
     }
@@ -277,6 +424,16 @@ public class GameResourceManager:MonoBehaviour
             _path = value;
             fullPath = Application.dataPath + "/../" + _path;
         }
+    }
+
+    public GenericResource<PaintingModelData> createModel(PaintingModelData pData)
+    {
+        return sceneModelReader.createData(pData,GenericResource<PaintingModelData>.generateID());
+    }
+
+    public GenericResource<Texture2D> createImage(Texture2D pData)
+    {
+        return sceneImageReader.createData(pData, GenericResource<Texture2D>.generateID());
     }
 
     public GenericResource<PaintingModelData> getModel(string pID)
@@ -314,11 +471,11 @@ public class GameResourceManager:MonoBehaviour
         {
             var lPaintingMesh = lObject.GetComponent<PaintingMesh>();
             if (lPaintingMesh)
-                sceneModelWriter.saveData(lPaintingMesh.modelResource);
+                sceneModelWriter.saveData((GenericResource<PaintingModelData>)lPaintingMesh.modelResource);
 
             var lRenderMaterial = lObject.GetComponent<RenderMaterialProperty>();
             if (lRenderMaterial && lRenderMaterial.resourceType == ResourceType.realTime)
-                sceneImageWriter.saveData(lRenderMaterial.imageResource);
+                sceneImageWriter.saveData((GenericResource<Texture2D>)lRenderMaterial.imageResource);
         }
         sceneModelWriter.endSaveScene();
         sceneImageWriter.endSaveScene();

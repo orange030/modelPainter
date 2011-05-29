@@ -5,7 +5,7 @@ using System.Collections;
 public class SceneSaver:MonoBehaviour
 {
     [SerializeField]
-    string savrFolder = "Scene";
+    string saveFolder = "Scene";
 
     /// <summary>
     /// 相对路径
@@ -21,7 +21,7 @@ public class SceneSaver:MonoBehaviour
 
     public void save()
     {
-        GameResourceManager.Main.path = savrFolder+"/"+_savePath;
+        GameResourceManager.Main.path = saveFolder+"/"+_savePath;
         GameResourceManager.Main.save();
     }
 }

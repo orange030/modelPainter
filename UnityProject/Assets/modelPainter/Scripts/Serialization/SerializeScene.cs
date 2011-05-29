@@ -58,7 +58,6 @@ public class SerializeScene:MonoBehaviour
     {
         var lObject = GameSystem.Singleton
             .createObject((string)pTable["#Type"]);
-        addObjectEvent(lObject);
 
         var lPosition = (Vector3)pTable["#position"];
         var lRotation = (Quaternion)pTable["#rotation"];
@@ -68,6 +67,9 @@ public class SerializeScene:MonoBehaviour
         lTransform.localPosition = lPosition;
         lTransform.localRotation = lRotation;
         lTransform.localScale = lScale;
+
+        //必须要设置之后才能调用
+        addObjectEvent(lObject);
 
     }
 

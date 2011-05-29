@@ -10,7 +10,17 @@ public class PlayStateManager:MonoBehaviour
 
     public event PlayStateChangedFunc changedToPlayEvent;
 
+    protected void doChangedToPlayEvent()
+    {
+        changedToPlayEvent();
+    }
+
     public event PlayStateChangedFunc changedToStopEvent;
+
+    protected void doChangedToStopEvent()
+    {
+        changedToStopEvent();
+    }
 
 
     [SerializeField]

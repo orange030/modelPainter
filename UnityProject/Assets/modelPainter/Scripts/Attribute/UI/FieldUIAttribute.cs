@@ -39,14 +39,38 @@ public class FieldUIAttribute:UiAttributeBase
         return lOut;
     }
 
+    public void intField(object pObject, PropertyInfo pPropertyInfo)
+    {
+        int lPreValue = (int)pPropertyInfo.GetValue(pObject, null);
+
+        string lPreText;
+        if (stringBuffer != null)
+        {
+            lPreText = stringBuffer;
+        }
+        else
+        {
+            lPreText = lPreValue.ToString();
+        }
+
+        string lNewText = TextField(lPreText, 8);
+        if (lPreText != lNewText)
+        {
+            try
+            {
+                pPropertyInfo.SetValue(pObject, System.Int32.Parse(lNewText), null);
+                stringBuffer = null;
+            }
+            catch (System.Exception e)
+            {
+                stringBuffer = lNewText;
+            }
+        }
+    }
+
     public void floatField(object pObject, PropertyInfo pPropertyInfo)
     {
         float lPreValue = (float)pPropertyInfo.GetValue(pObject, null);
-        ////无内容时 获取初始值
-        //if (stringBuffer.Length == 0)
-        //{
-        //    stringBuffer = lPreValue.ToString();
-        //}
 
         string lPreText;
         if(stringBuffer!=null)
@@ -72,40 +96,13 @@ public class FieldUIAttribute:UiAttributeBase
             }
         }
 
-        //string lNewText;
-        //// 为可用的数字时,更新
-        //if (isFloat(stringBuffer))
-        //{
-        //    string lPreText = lPreValue.ToString();
-        //    lNewText
-        //        = TextField(lPreValue.ToString(), 8);
-        //}
-        ////////无缓存内容时,显示属性内的值
-        //////if (stringBuffer.Length == 0)
-        //////    stringBuffer
-        //////        = TextField(pPropertyInfo.GetValue(pObject, null).ToString(), 8);
-        ////else
-        //{
-        //    lNewText = TextField(stringBuffer, 8);
-        //}
-
-        //if (lNewText != lPreValue.ToString())
-        //{
-        //    stringBuffer = lNewText;
-        //    try
-        //    {
-        //        pPropertyInfo.SetValue(pObject, float.Parse(stringBuffer), null);
-        //    }
-        //    catch (System.Exception e)
-        //    {
-        //    }
-        //}
     }
 
     public void boolField(object pObject, PropertyInfo pPropertyInfo)
     {
         bool lValue = (bool)pPropertyInfo.GetValue(pObject, null);
-        bool lNewValue = GUILayout.Toggle(lValue,"");
+        content.text="";
+        bool lNewValue = GUILayout.Toggle(lValue, content);
         if(lValue!=lNewValue)
             pPropertyInfo.SetValue(pObject, lNewValue, null);
     }
@@ -120,6 +117,8 @@ public class FieldUIAttribute:UiAttributeBase
             floatField(pObject, pPropertyInfo);
         else if (lPropertyType == typeof(bool))
             boolField(pObject, pPropertyInfo);
+        else if (lPropertyType == typeof(int))
+            intField(pObject, pPropertyInfo);
         else
             Debug.LogError("no ui in the type ");
     }

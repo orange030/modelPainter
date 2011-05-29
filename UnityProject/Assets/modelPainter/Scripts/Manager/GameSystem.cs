@@ -16,6 +16,7 @@ public class GameSystem:MonoBehaviour
         public Texture2D image;
         public string showName;
         public Object data;
+        public bool isShow = true;
     }
 
     [System.Serializable]
@@ -125,7 +126,6 @@ public class GameSystem:MonoBehaviour
     public Vector3 getRenderObjectPos(Vector3 pPos)
     {
         pPos.z = paintingRenderObjectZ;
-        print(pPos);
         return pPos;
     }
 
@@ -160,6 +160,11 @@ public class GameSystem:MonoBehaviour
         }
     }
 
+    void OnDestroy()
+    {
+        singletonInstance = null;
+    }
+
     void Awake()
     {
         if (singletonInstance)
@@ -190,7 +195,7 @@ public class GameSystem:MonoBehaviour
         //    nameToPrefab[lPrefabInfo.name] = lPrefabInfo.prefab;
         //}
         creatNameToPrefab(prefabInfoTree);
-        nameToPrefab["paintingObject"] = paintingObjectPrefab;
+        //nameToPrefab["paintingObject"] = paintingObjectPrefab;
 
     }
 

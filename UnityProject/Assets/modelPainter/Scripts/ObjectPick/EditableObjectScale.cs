@@ -11,6 +11,8 @@ public class EditableObjectScale : ObjectPickBase
 
     public Vector2 lastMousePosition;
 
+    public bool enableZ = true;
+
     public void endDrag()
     {
         if (dragMode == DragMode.none)
@@ -106,12 +108,14 @@ public class EditableObjectScale : ObjectPickBase
 
     public override void OnRightOn(GameObject pObject)
     {
-        OnDragObject(pObject, DragMode.XZ);
+        if (enableZ)
+            OnDragObject(pObject, DragMode.XZ);
     }
 
     public override void OnRightOff(GameObject pObject)
     {
-        endDrag();
+        if (enableZ)
+            endDrag();
     }
 
 }

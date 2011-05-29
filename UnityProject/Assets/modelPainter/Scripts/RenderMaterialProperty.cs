@@ -12,7 +12,7 @@ public class RenderMaterialResource
 
 public class RenderMaterialProperty:MonoBehaviour
 {
-    GenericResource<Texture2D> _imageResource;
+    public RenderMaterialResourceInfo _imageResource;
 
     public void useImageMaterial(Texture2D pTexture)
     {
@@ -22,7 +22,8 @@ public class RenderMaterialProperty:MonoBehaviour
         material = lMaterial;
     }
 
-    public GenericResource<Texture2D> imageResource
+    [zzSerialize]
+    public RenderMaterialResourceInfo imageResource
     {
         get { return _imageResource; }
         set 
@@ -30,7 +31,7 @@ public class RenderMaterialProperty:MonoBehaviour
             _imageResource = value;
             _resourceType = value.resourceType;
             materialName = value.resourceID;
-            useImageMaterial(value.resource);
+            useImageMaterial(value.resource.resource);
         }
     }
 
@@ -207,11 +208,26 @@ public class RenderMaterialProperty:MonoBehaviour
         }
     }
 
+    public string invisibleMaterialName = "undefined";
+
+    public string invisibleLayerName = "undefined";
+
     public void setMaterial(RenderMaterialResource pRenderMaterialInfo)
     {
+        var lNewMaterialName = pRenderMaterialInfo.materialName;
+        if (materialName ==invisibleMaterialName
+            || lNewMaterialName==invisibleMaterialName)
+        {
+            if (lNewMaterialName == invisibleMaterialName)
+                _meshRenderer.gameObject.layer = LayerMask.NameToLayer(invisibleLayerName);
+            else
+                _meshRenderer.gameObject.layer = 0;
+        }
+
         sharedMaterial = pRenderMaterialInfo.material;
         materialName = pRenderMaterialInfo.materialName;
         _resourceType = pRenderMaterialInfo.resourceType;
+
 
     }
 
@@ -220,14 +236,12 @@ public class RenderMaterialProperty:MonoBehaviour
         releaseMaterial();
     }
 
-    static RenderMaterialGUI renderMaterialGUI;
+    static RenderMaterialGUI renderMaterialGUI= new RenderMaterialGUI();
 
     public static IPropertyGUI PropertyGUI
     {
         get 
         {
-            if (renderMaterialGUI==null)
-                renderMaterialGUI = new RenderMaterialGUI();
             return renderMaterialGUI;
         }
     }

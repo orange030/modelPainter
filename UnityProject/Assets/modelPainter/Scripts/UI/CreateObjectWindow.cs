@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public static class GameSystemInfoNodeExtensionMethods
 {
@@ -15,18 +16,21 @@ public static class GameSystemInfoNodeExtensionMethods
         lOut.image = image ? image : pDefaultCollapsedNodeImg;
         lOut.expandedImage = pInfoNode.expandedImage ? pInfoNode.expandedImage : pDefaultExpandedNodeImg;
 
-        var lGUIElements = new zzGUILibTreeElement[elements.Length];
+        var lGUIElements = new List<zzGUILibTreeElement>(elements.Length);
         for (int i = 0; i < elements.Length; ++i)
         {
             var lInfoElement = elements[i];
+            if (!lInfoElement.isShow)
+                continue;
             var lGUIElement = new zzGUILibTreeElement();
             lGUIElement.name = lInfoElement.showName;
             lGUIElement.image = lInfoElement.image;
             lGUIElement.stringData = lInfoElement.name;
             lGUIElement.objectData = lInfoElement.data;
-            lGUIElements[i] = lGUIElement;
+            //lGUIElements[i] = lGUIElement;
+            lGUIElements.Add(lGUIElement);
         }
-        lOut.elements = lGUIElements;
+        lOut.elements = lGUIElements.ToArray();
 
         var lGUINode = new zzGUILibTreeNode[nodes.Length];
         for (int i = 0; i < nodes.Length; ++i)

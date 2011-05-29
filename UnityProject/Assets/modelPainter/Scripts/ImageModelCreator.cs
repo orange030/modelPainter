@@ -108,7 +108,7 @@ public class ImageModelCreator:MonoBehaviour
         if (!fileBrowserDialog)
         {
             fileBrowserDialog = zzFileBrowserDialog.createDialog();
-            fileBrowserDialog.addFileFilter("", new string[] { "*.png" });
+            fileBrowserDialog.addFileFilter("", new string[] { "*.png", "*.jpg", "*.jpeg" });
             fileBrowserDialog.relativePosition = new Rect(0.0f, 0.0f, 6.0f / 7.0f, 4.0f / 5.0f);
             fileBrowserDialog.useRelativePosition = new zzGUIRelativeUsedInfo(false, false, true, true);
             fileBrowserDialog.horizontalDockPosition = zzGUIDockPos.center;
@@ -201,15 +201,18 @@ public class ImageModelCreator:MonoBehaviour
 
             var lGameObject = lSub.gameObject;
             var lModelData = PaintingModelData
-                .createData(lGameObject, lTexture.texelSize);
+                .createData(lGameObject, new Vector2(lTexture.width, lTexture.height));
 
             //useImageMaterial(lPaintingMesh);
 
             nowPainterOutData.paintingModels[i]
-                = new GenericResource<PaintingModelData>( lModelData );
+                = GameResourceManager.Main.createModel(lModelData);
+                //= new GenericResource<PaintingModelData>( lModelData );
             nowPainterOutData.transforms[i] = new zzTransform(lSub);
 
-            nowPainterOutData.modelTexture[i] = new GenericResource<Texture2D>(lTexture);
+            nowPainterOutData.modelTexture[i]
+                = GameResourceManager.Main.createImage(lTexture);
+            //new GenericResource<Texture2D>(lTexture);
             ++i;
         }
 
@@ -266,7 +269,8 @@ public class ImageModelCreator:MonoBehaviour
 
             }
             nowPainterOutData = new PainterOutData();
-            nowPainterOutData.modelImage = new GenericResource<Texture2D>( lImage);
+            nowPainterOutData.modelImage = GameResourceManager.Main.createImage(lImage);
+                //new GenericResource<Texture2D>( lImage);
             imgPathToData[lFileInfo.ToString()] = nowPainterOutData;
 
         }

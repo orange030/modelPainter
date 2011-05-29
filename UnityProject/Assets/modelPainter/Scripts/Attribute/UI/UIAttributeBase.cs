@@ -36,6 +36,14 @@ public abstract class UiAttributeBase:Attribute
 
     public string label;
 
+    protected GUIContent content = new GUIContent();
+
+    public string tooltip
+    {
+        set { content.tooltip = value; }
+        get { return content.tooltip; }
+    }
+
     public Rect windowRect;
 
     public int verticalDepth = 1;
