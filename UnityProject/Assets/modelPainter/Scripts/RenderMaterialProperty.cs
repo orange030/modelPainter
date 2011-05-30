@@ -12,15 +12,16 @@ public class RenderMaterialResource
 
 public class RenderMaterialProperty:MonoBehaviour
 {
-    public RenderMaterialResourceInfo _imageResource;
+    public RenderMaterialResourceInfo _imageResource
+        = new RenderMaterialResourceInfo();
 
-    public void useImageMaterial(Texture2D pTexture)
-    {
-        var lMaterial = new Material(GameSystem.Singleton.defaultMaterial);
-        lMaterial.mainTexture = pTexture;
-        _sharedMaterial = null;
-        material = lMaterial;
-    }
+    //public void useImageMaterial(Texture2D pTexture)
+    //{
+    //    var lMaterial = new Material(GameSystem.Singleton.defaultMaterial);
+    //    lMaterial.mainTexture = pTexture;
+    //    _sharedMaterial = null;
+    //    material = lMaterial;
+    //}
 
     [zzSerialize]
     public RenderMaterialResourceInfo imageResource
@@ -29,9 +30,10 @@ public class RenderMaterialProperty:MonoBehaviour
         set 
         { 
             _imageResource = value;
-            _resourceType = value.resourceType;
-            materialName = value.resourceID;
-            useImageMaterial(value.resource.resource);
+            //_resourceType = value.resourceType;
+            //materialName = value.resourceID;
+            //useImageMaterial(value.resource.resource);
+            updateMaterial();
         }
     }
 
@@ -53,21 +55,21 @@ public class RenderMaterialProperty:MonoBehaviour
     [SerializeField]
     private Material _material;
 
-    [SerializeField]
-    ResourceType _resourceType = ResourceType.unknown;
+    //[SerializeField]
+    //ResourceType _resourceType = ResourceType.unknown;
 
-    public ResourceType resourceType
-    {
-        get { return _resourceType; }
-    }
+    //public ResourceType resourceType
+    //{
+    //    get { return _resourceType; }
+    //}
 
-    void Awake()
-    {
-        if (materialName.Length == 0)
-            _resourceType = ResourceType.unknown;
-        if (_material)
-            _material = new Material(_material);
-    }
+    //void Awake()
+    //{
+    //    if (materialName.Length == 0)
+    //        _resourceType = ResourceType.unknown;
+    //    if (_material)
+    //        _material = new Material(_material);
+    //}
 
     void Start()
     {
@@ -75,9 +77,9 @@ public class RenderMaterialProperty:MonoBehaviour
         //{
         //    sharedMaterial = _meshRenderer.material;
         //}
-        if (_resourceType == ResourceType.unknown)
+        if (_imageResource.resourceType == ResourceType.unknown)
         {
-            _resourceType = ResourceType.builtin;
+            _imageResource.resourceType = ResourceType.builtin;
             updateMaterial();
         }
     }
@@ -87,8 +89,7 @@ public class RenderMaterialProperty:MonoBehaviour
         if (_material)
         {
             Destroy(_material);
-            _material = null;
-            //_sharedMaterial = null;
+
         }
     }
 
@@ -143,41 +144,45 @@ public class RenderMaterialProperty:MonoBehaviour
     }
 
 
-    public string materialName;
+    //public string materialName;
 
-    [zzSerialize]
+    [zzSerializeIn]
     public string resourceID
     {
-        get { return materialName; }
+        //get { return materialName; }
         set
         {
-            materialName = value;
-            if (_resourceType != ResourceType.unknown)
+            _imageResource.resourceID = value;
+            if (_imageResource.resourceType != ResourceType.unknown)
                 updateMaterial();
         }
     }
 
-    [zzSerialize]
+    [zzSerializeIn]
     public string resourceTypeID
     {
-        get { return _resourceType.ToString(); }
+        //get { return _resourceType.ToString(); }
         set
         {
-            _resourceType = (ResourceType)System.Enum.Parse(typeof(ResourceType), value);
-            if (materialName.Length > 0)
+            _imageResource.resourceType = (ResourceType)System.Enum.Parse(typeof(ResourceType), value);
+            if (_imageResource.resourceID.Length > 0)
                 updateMaterial();
         }
     }
 
     public void updateMaterial()
     {
-        switch(_resourceType)
+        switch (_imageResource.resourceType)
         {
             case ResourceType.builtin:
-                setMaterial(GameSystem.Singleton.getRenderMaterial(materialName));
+                //setMaterial(GameSystem.Singleton.getRenderMaterial(_imageResource.resourceID));
+                sharedMaterial = (Material)_imageResource;
+                visibleChangedCheck(_imageResource.resourceTypeID);
                 break;
             case ResourceType.realTime:
-                imageResource = GameResourceManager.Main.getImage(resourceID);
+                sharedMaterial = GameSystem.Singleton.defaultMaterial;
+                material.mainTexture = _imageResource.resource.resource;
+                //imageResource = GameResourceManager.Main.getImage(_imageResource.resourceID);
                 break;
         }
     }
@@ -186,7 +191,7 @@ public class RenderMaterialProperty:MonoBehaviour
 
     public Material material
     {
-        get { return _material; }
+        get { return _meshRenderer.material; }
         set
         {
             releaseMaterial();
@@ -212,21 +217,25 @@ public class RenderMaterialProperty:MonoBehaviour
 
     public string invisibleLayerName = "undefined";
 
-    public void setMaterial(RenderMaterialResource pRenderMaterialInfo)
+    void visibleChangedCheck(string lNewMaterialName)
     {
-        var lNewMaterialName = pRenderMaterialInfo.materialName;
-        if (materialName ==invisibleMaterialName
-            || lNewMaterialName==invisibleMaterialName)
+        if (_imageResource.resourceID == invisibleMaterialName
+            || lNewMaterialName == invisibleMaterialName)
         {
             if (lNewMaterialName == invisibleMaterialName)
                 _meshRenderer.gameObject.layer = LayerMask.NameToLayer(invisibleLayerName);
             else
                 _meshRenderer.gameObject.layer = 0;
         }
+    }
+
+    public void setMaterial(RenderMaterialResource pRenderMaterialInfo)
+    {
+        visibleChangedCheck( pRenderMaterialInfo.materialName);
 
         sharedMaterial = pRenderMaterialInfo.material;
-        materialName = pRenderMaterialInfo.materialName;
-        _resourceType = pRenderMaterialInfo.resourceType;
+        _imageResource.resourceID = pRenderMaterialInfo.materialName;
+        _imageResource.resourceType = pRenderMaterialInfo.resourceType;
 
 
     }

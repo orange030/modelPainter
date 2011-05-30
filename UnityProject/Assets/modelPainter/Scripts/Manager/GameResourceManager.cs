@@ -474,7 +474,7 @@ public class GameResourceManager:MonoBehaviour
                 sceneModelWriter.saveData((GenericResource<PaintingModelData>)lPaintingMesh.modelResource);
 
             var lRenderMaterial = lObject.GetComponent<RenderMaterialProperty>();
-            if (lRenderMaterial && lRenderMaterial.resourceType == ResourceType.realTime)
+            if (lRenderMaterial && lRenderMaterial.imageResource.resourceType == ResourceType.realTime)
                 sceneImageWriter.saveData((GenericResource<Texture2D>)lRenderMaterial.imageResource);
         }
         sceneModelWriter.endSaveScene();

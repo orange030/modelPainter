@@ -143,17 +143,20 @@ public class PaintingModelData
 
 public class PaintingMesh : zzEditableObject
 {
-    GenericResource<PaintingModelData> _modelResource;
+    public ModelResourceInfo _modelResource
+        = new ModelResourceInfo();
 
-    public GenericResource<PaintingModelData> modelResource
+    [zzSerialize]
+    public ModelResourceInfo modelResource
     {
         get { return _modelResource; }
         set 
         {
             _modelResource = value;
-            modelData = value.resource;
-            modelName = value.resourceID;
-            _resourceType = value.resourceType;
+            updateModel();
+            //modelData = value.resource;
+            //modelName = value.resourceID;
+            //_resourceType = value.resourceType;
         }
     }
 
@@ -179,7 +182,7 @@ public class PaintingMesh : zzEditableObject
         Transform lTransform = lObject.transform;
         var lOut = lObject.GetComponent<PaintingMesh>();
 
-        lOut.modelData = pData;
+        //lOut.modelData = pData;
         {
             //图形模型
             //var lRenderObject = new GameObject("Render");
@@ -207,36 +210,36 @@ public class PaintingMesh : zzEditableObject
         return lOut;
     }
 
-    ResourceType _resourceType;
+    //ResourceType _resourceType;
 
     public PaintingModelData modelData;
     public string modelName;
 
-    [zzSerialize]
+    [zzSerializeIn]
     public string resourceID
     {
-        get { return modelName; }
+        //get { return modelName; }
         set
         {
-            modelName = value;
-            if (_resourceType != ResourceType.unknown)
+            modelResource.resourceID = value;
+            if (modelResource.resourceType != ResourceType.unknown)
                 updateModel();
         }
     }
 
     void updateModel()
     {
-        create(gameObject, GameResourceManager.Main.getModel(modelName));
+        create(gameObject, modelResource.resource.resource);
     }
 
-    [zzSerialize]
+    [zzSerializeIn]
     public string resourceTypeID
     {
-        get { return _resourceType.ToString(); }
+        //get { return _resourceType.ToString(); }
         set
         {
-            _resourceType = (ResourceType)System.Enum.Parse(typeof(ResourceType), value);
-            if (modelName.Length > 0)
+            modelResource.resourceType = (ResourceType)System.Enum.Parse(typeof(ResourceType), value);
+            if (modelResource.resourceID.Length > 0)
                 updateModel();
         }
     }

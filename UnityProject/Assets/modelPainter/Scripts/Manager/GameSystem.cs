@@ -139,6 +139,7 @@ public class GameSystem:MonoBehaviour
         get{return _defaultMaterial;}
     }
 
+    [SerializeField]
     Material _defaultMaterial;
 
     void creatNameToPrefab(InfoNode pInfoNode)
@@ -188,7 +189,9 @@ public class GameSystem:MonoBehaviour
 
         //默认材质
         nameToRenderMaterial[""] = renderMaterialResources[0];
-        _defaultMaterial = renderMaterialResources[0].material;
+        //_defaultMaterial = renderMaterialResources[0].material;
+        if (!_defaultMaterial)
+            _defaultMaterial = new Material(Shader.Find("Transparent/Diffuse"));
 
         //foreach (var lPrefabInfo in PrefabInfoList)
         //{
