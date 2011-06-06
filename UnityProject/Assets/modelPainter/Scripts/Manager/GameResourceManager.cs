@@ -151,9 +151,10 @@ public class SceneModelReader:SceneReader<PaintingModelData>
     public SceneModelReader()
     {
         fileExtensionFilter = "*.pmb";
+        extensionToReadFunc["pmb"] = readData;
     }
 
-    public override PaintingModelData readData(string pFullName)
+    public PaintingModelData readData(string pFullName)
     {
         PaintingModelData lOut;
         using (var lFile = new FileStream(pFullName, FileMode.Open))
@@ -183,9 +184,9 @@ public class SceneModelWriter:SceneWriter<PaintingModelData>
         extensionToWriteFunc[defaultFileExtension] = writeModelData;
     }
 
-    public void writeModelData(PaintingModelData pData, string pFullName)
+    public void writeModelData(PaintingModelData pData, string pName)
     {
-        using (var lFile = new FileStream(pFullName, FileMode.Create))
+        using (var lFile = new FileStream(pName + ".pmb", FileMode.Create))
         {
             StreamWriter lWriter = new StreamWriter(lFile);
             lWriter.AutoFlush = true;
@@ -199,25 +200,81 @@ public class SceneModelWriter:SceneWriter<PaintingModelData>
 
 public class SceneImageReader : SceneReader<Texture2D>
 {
+    public bool compress = false;
     public SceneImageReader()
     {
-        fileExtensionFilter = "*.png|*.jpg|*.jpeg";
+        fileExtensionFilter = "*.gif|*.jpg|*.jpeg|*.png";
+        extensionToReadFunc["png"] = readData;
+        extensionToReadFunc["jpg"] = readData;
+        extensionToReadFunc["jpeg"] = readData;
+        extensionToReadFunc["gif"] = readGifData;
     }
 
-    public override Texture2D readData(string pFullName)
+    public Texture2D readData(string pFullName)
     {
-        Texture2D lOut = new Texture2D(4, 4, TextureFormat.ARGB32, false); ;
+        Texture2D lOut = new Texture2D(4, 4, TextureFormat.ARGB32, false);
         using (var lFile = new FileStream(pFullName, FileMode.Open))
         {
             BinaryReader lBinaryReader = new BinaryReader(lFile);
             lOut.LoadImage(lBinaryReader.ReadBytes((int)lFile.Length));
         }
+        if (compress)
+            lOut.Compress(true);
+        return lOut;
+    }
+
+    public Texture2D readGifData(string pFullName)
+    {
+        Texture2D lOut = new Texture2D(4, 4, TextureFormat.ARGB32, false);
+        using (var lImage = System.Drawing.Image.FromFile(pFullName))
+        {
+            var lMemoryStream = memoryStream;
+            lImage.Save(lMemoryStream, System.Drawing.Imaging.ImageFormat.Png);
+            lOut.LoadImage(lMemoryStream.GetBuffer());
+            lMemoryStream.SetLength(0);
+            lMemoryStream.Position = 0;
+        }
+        if (compress)
+            lOut.Compress(true);
         return lOut;
     }
 
     public override void clear(GenericResource<Texture2D> pData)
     {
         Object.Destroy(pData.resource);
+    }
+
+    public new void beginReadScene( string rootDirName)
+    {
+        base.beginReadScene(rootDirName);
+        Debug.Log("SceneImageReader.beginReadScene");
+    }
+
+    public new void endReadScene()
+    {
+        if(_memoryStream!=null)
+        {
+            _memoryStream.Dispose();
+            _memoryStream = null;
+        }
+        Debug.Log("SceneImageReader.endReadScene");
+    }
+
+    MemoryStream _memoryStream;
+
+    MemoryStream memoryStream
+    {
+        get
+        {
+            if (_memoryStream == null)
+                _memoryStream = new MemoryStream(4096 * 2048 * 4 + 1024 * 1024);
+            return _memoryStream;
+        }
+
+        set
+        {
+            _memoryStream = value;
+        }
     }
 }
 
@@ -227,32 +284,37 @@ public class SceneImageWriter : SceneWriter<Texture2D>
     {
         defaultFileExtension = "png";
         extensionToWriteFunc[defaultFileExtension] = writePngData;
-        extensionToWriteFunc["jpg"] = writeJpgData;
-        extensionToWriteFunc["jpeg"] = writeJpgData;
+        extensionToWriteFunc["jpg"] = writePngData;
+        extensionToWriteFunc["jpeg"] = writePngData;
     }
 
-    public void writePngData(Texture2D pData, string pFullName)
+    public void writePngData(Texture2D pData, string pName)
     {
-        using (var lFile = new FileStream(pFullName, FileMode.Create))
+        using (var lFile = new FileStream(pName+".png", FileMode.Create))
         {
             BinaryWriter lWriter = new BinaryWriter(lFile);
             lWriter.Write(pData.EncodeToPNG());
         }
     }
 
-    public void writeJpgData(Texture2D pData, string pFullName)
-    {
+    //public void writeJpgData(Texture2D pData, string pFullName)
+    //{
 
-        using (var lBitmap = new System.Drawing.Bitmap(new MemoryStream(pData.EncodeToPNG())))
-        {
-            lBitmap.Save(pFullName, System.Drawing.Imaging.ImageFormat.Jpeg);
-        }
-    }
+    //    using (var lBitmap = new System.Drawing.Bitmap(new MemoryStream(pData.EncodeToPNG())))
+    //    {
+    //        lBitmap.Save(pFullName, System.Drawing.Imaging.ImageFormat.Jpeg);
+    //    }
+    //}
 }
 
 
 public abstract class SceneReader<T>
 {
+    protected delegate T ReadDataFunc( string pFullName );
+
+    protected Dictionary<string, ReadDataFunc> extensionToReadFunc
+        = new Dictionary<string, ReadDataFunc>();
+
     string rootDictionary;
 
     Dictionary<string, string> nameToPath = new Dictionary<string, string>();
@@ -296,12 +358,14 @@ public abstract class SceneReader<T>
         GenericResource<T> lOut = null;
         if(!nameToData.ContainsKey(pID))
         {
-            lOut = createData(readData(nameToPath[pID]), pID);
-            //lOut = new GenericResource<T>(readData(nameToPath[pID]), pID);
-            lOut.extension = Path.GetExtension(nameToPath[pID]);
+            var lExtension = Path.GetExtension(nameToPath[pID]);
             //去除扩展名中的 点
-            lOut.extension = lOut.extension.Substring(1, lOut.extension.Length-1);
+            lExtension = lExtension.Substring(1, lExtension.Length - 1);
             //nameToData[pID] = lOut;
+            lOut = createData(
+                extensionToReadFunc[lExtension](nameToPath[pID]),
+                pID);
+            lOut.extension = lExtension;
         }
         else
             lOut = nameToData[pID];
@@ -312,7 +376,7 @@ public abstract class SceneReader<T>
     //{
 
     //}
-    public abstract T readData(string pFullName);
+    //public void T readData(string pFullName);
 
     public void clear()
     {
@@ -360,17 +424,18 @@ public abstract class SceneWriter<T>
 
     public void saveData(T pData, string pDataID, string pFileExtension)
     {
-        writeData(pData, rootDictionary + "/" + pDataID + "." + pFileExtension, pFileExtension);
+        if (!File.Exists(rootDictionary + "/" + pDataID + "." + pFileExtension))
+            writeData(pData, rootDictionary + "/" + pDataID , pFileExtension);
     }
 
-    public void writeData(T pData, string pFullName, string pFileExtension)
+    public void writeData(T pData, string pName, string pFileExtension)
     {
         //Debug.Log("pFileExtension:"+pFileExtension);
         //foreach (var lDic in extensionToWriteFunc)
         //{
         //    Debug.Log(lDic.Key);
         //}
-        extensionToWriteFunc[pFileExtension](pData, pFullName);
+        extensionToWriteFunc[pFileExtension](pData, pName);
     }
 
     public void endSaveScene()
@@ -390,12 +455,15 @@ public class GameResourceManager:MonoBehaviour
         sceneImageReader.clear();
     }
 
+    public bool compressImage = false;
+
     void Awake()
     {
         if (singletonInstance)
-            Debug.LogError("zzAllocateViewIDManager");
+            Debug.LogError("GameResourceManager");
         singletonInstance = this;
         path = path;
+        sceneImageReader.compress = compressImage;
     }
 
     static protected GameResourceManager singletonInstance;
@@ -476,6 +544,15 @@ public class GameResourceManager:MonoBehaviour
             var lRenderMaterial = lObject.GetComponent<RenderMaterialProperty>();
             if (lRenderMaterial && lRenderMaterial.imageResource.resourceType == ResourceType.realTime)
                 sceneImageWriter.saveData((GenericResource<Texture2D>)lRenderMaterial.imageResource);
+
+            var lCombineImagePlane = lObject.GetComponent<CombineImagePlane>();
+            if(lCombineImagePlane)
+            {
+                foreach (var lImage in lCombineImagePlane.imageInfo.images)
+                {
+                    sceneImageWriter.saveData((GenericResource<Texture2D>)lImage);
+                }
+            }
         }
         sceneModelWriter.endSaveScene();
         sceneImageWriter.endSaveScene();

@@ -177,7 +177,7 @@ public class RenderMaterialProperty:MonoBehaviour
             case ResourceType.builtin:
                 //setMaterial(GameSystem.Singleton.getRenderMaterial(_imageResource.resourceID));
                 sharedMaterial = (Material)_imageResource;
-                visibleChangedCheck(_imageResource.resourceTypeID);
+                visibleChangedCheck(_imageResource.resourceID);
                 break;
             case ResourceType.realTime:
                 sharedMaterial = GameSystem.Singleton.defaultMaterial;
@@ -219,11 +219,12 @@ public class RenderMaterialProperty:MonoBehaviour
 
     void visibleChangedCheck(string lNewMaterialName)
     {
-        if (_imageResource.resourceID == invisibleMaterialName
+        var lInvisibleLayer = LayerMask.NameToLayer(invisibleLayerName);
+        if (_meshRenderer.gameObject.layer == lInvisibleLayer
             || lNewMaterialName == invisibleMaterialName)
         {
             if (lNewMaterialName == invisibleMaterialName)
-                _meshRenderer.gameObject.layer = LayerMask.NameToLayer(invisibleLayerName);
+                _meshRenderer.gameObject.layer = lInvisibleLayer;
             else
                 _meshRenderer.gameObject.layer = 0;
         }
