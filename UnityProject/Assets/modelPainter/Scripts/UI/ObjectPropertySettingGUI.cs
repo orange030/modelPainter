@@ -151,9 +151,7 @@ public partial class ObjectPropertySetting : MonoBehaviour
         {
             int lIndex = pUiItem.uiType.verticalDepth;
             List<UiItem> lList;
-            if (mData.ContainsKey(lIndex))
-                lList = mData[lIndex];
-            else
+            if (!mData.TryGetValue(lIndex, out lList))
             {
                 lList = new List<UiItem>();
                 mData[lIndex] = lList;

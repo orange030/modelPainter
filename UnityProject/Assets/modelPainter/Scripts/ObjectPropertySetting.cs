@@ -82,9 +82,7 @@ public partial class ObjectPropertySetting:MonoBehaviour
     static IPropertyGUI getPropertyGUI(System.Type lType)
     {
         IPropertyGUI lOut;
-        if (typeToUiItems.ContainsKey(lType))
-            lOut = typeToUiItems[lType];
-        else
+        if (!typeToUiItems.TryGetValue(lType, out lOut))
         {
             var lGetPropertyGUI = lType.GetMethod("get_PropertyGUI");
             if (lGetPropertyGUI != null)

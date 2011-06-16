@@ -356,7 +356,7 @@ public abstract class SceneReader<T>
     public GenericResource<T> getData(string pID)
     {
         GenericResource<T> lOut = null;
-        if(!nameToData.ContainsKey(pID))
+        if (!nameToData.TryGetValue(pID, out lOut))
         {
             var lExtension = Path.GetExtension(nameToPath[pID]);
             //去除扩展名中的 点
@@ -367,8 +367,6 @@ public abstract class SceneReader<T>
                 pID);
             lOut.extension = lExtension;
         }
-        else
-            lOut = nameToData[pID];
         return lOut;
     }
 

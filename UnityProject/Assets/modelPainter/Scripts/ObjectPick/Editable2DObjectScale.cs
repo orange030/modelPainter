@@ -40,6 +40,7 @@ public class Editable2DObjectScale:ObjectPickBase
         var lEditableObject = zzEditableObjectContainer.findRoot(pObject);
         if (!lEditableObject)
             return;
+        zzUndo.registerUndo(lEditableObject.transform);
         editableObject = lEditableObject;
         lEditableObject.draged = true;
         scaleMode = pMode;
