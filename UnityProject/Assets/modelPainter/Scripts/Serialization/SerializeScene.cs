@@ -48,21 +48,38 @@ public class SerializeScene:MonoBehaviour
 
     public void serializeFromArray(ArrayList pArray)
     {
+        //for (int i = 0; i < pArray.Count;++i )
+        //{
+        //    serializeObjectFromTable(pArray[i] as Hashtable).loadId = i + 1;
+        //}
+        int lID = 1;
         foreach (Hashtable lTable in pArray)
         {
-            serializeObjectFromTable(lTable);
+            var lObject = serializeObjectFromTable(lTable);
+            if (lObject)
+            {
+                lObject.loadId = lID;
+                var lNetworkViews = lObject.GetComponentsInChildren<NetworkView>();
+                lID += 1 + lNetworkViews.Length;
+                foreach (var lNetworkView in lNetworkViews)
+                {
+                    lNetworkView.enabled = false;
+                }
+            }
         }
     }
 
-    public void serializeObjectFromTable(Hashtable pTable)
+    public ObjectPropertySetting serializeObjectFromTable(Hashtable pTable)
     {
         var lObject = GameSystem.Singleton
             .createObject((string)pTable["#Type"]);
-
+        if (!lObject)
+            return null;
         var lPosition = (Vector3)pTable["#position"];
         var lRotation = (Quaternion)pTable["#rotation"];
         var lScale = (Vector3)pTable["#scale"];
-        lObject.GetComponent<ObjectPropertySetting>().serializeFromTable(pTable);
+        var lOut = lObject.GetComponent<ObjectPropertySetting>();
+        lOut.serializeFromTable(pTable);
         var lTransform = lObject.transform;
         lTransform.localPosition = lPosition;
         lTransform.localRotation = lRotation;
@@ -70,7 +87,7 @@ public class SerializeScene:MonoBehaviour
 
         //必须要设置之后才能调用
         addObjectEvent(lObject);
-
+        return lOut;
     }
 
 }

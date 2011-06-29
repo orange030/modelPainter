@@ -10,6 +10,8 @@ public partial class ObjectPropertySetting:MonoBehaviour
 
     public string TypeName;
 
+    public int loadId = 0;
+
     public MonoBehaviour[] UiObjects;
 
     public IPropertyGUI[] PropertyGUIList;
@@ -18,10 +20,12 @@ public partial class ObjectPropertySetting:MonoBehaviour
     {
         var lOut = new Hashtable();
         var lPropertyData = new Hashtable();
+        var lSerializeObject = zzSerializeObject.Singleton;
         foreach (var lObject in UiObjects)
         {
-            lPropertyData[lObject.GetType().Name]
-                = zzSerializeObject.Singleton.serializeToTable(lObject);
+            if(lSerializeObject.needSerializeOut(lObject))
+                lPropertyData[lObject.GetType().Name]
+                    = lSerializeObject.serializeToTable(lObject);
         }
         lOut["#Property"] = lPropertyData;
         return lOut;
@@ -59,9 +63,12 @@ public partial class ObjectPropertySetting:MonoBehaviour
         foreach (DictionaryEntry lDir in lPropertyData)
         {
             var lObject = getObject(lDir.Key as string);
-            impFuncByName(lObject, "BeginSerialization");
-            zzSerializeObject.Singleton
-                .serializeFromTable(lObject, lDir.Value as Hashtable);
+            if (lObject)
+            {
+                impFuncByName(lObject, "BeginSerialization");
+                zzSerializeObject.Singleton
+                    .serializeFromTable(lObject, lDir.Value as Hashtable);
+            }
         }
 
         foreach (var lObject in UiObjects)

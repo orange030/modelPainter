@@ -93,9 +93,15 @@ public class GameSystem:MonoBehaviour
 
     public GameObject createObject(string pTypeName)
     {
-        var lOut = (GameObject)Instantiate(nameToPrefab[pTypeName]);
-        lOut.GetComponent<ObjectPropertySetting>().TypeName = pTypeName;
-        return lOut;
+        GameObject lPrefab;
+        if(nameToPrefab.TryGetValue(pTypeName,out lPrefab))
+        {
+            var lOut = (GameObject)Instantiate(lPrefab);
+            lOut.GetComponent<ObjectPropertySetting>().TypeName = pTypeName;
+            return lOut;
+        }
+        Debug.LogError("not supported object type:" + pTypeName);
+        return null;
     }
 
     public RenderMaterialInfo[] renderMaterialInfoList;
