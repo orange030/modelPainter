@@ -31,6 +31,7 @@ public class Editable2DObjectScale:ObjectPickBase
         scaleMode = ScaleMode.none;
         editableObject.draged = false;
         this.enabled = false;
+        editableObject.rigidbody.detectCollisions = true;
     }
 
     void OnDragObject(GameObject pObject, ScaleMode pMode)
@@ -49,6 +50,7 @@ public class Editable2DObjectScale:ObjectPickBase
         scaleValue = Mathf.Sqrt(lObjectScale.x * lObjectScale.x + lObjectScale.y * lObjectScale.y) * 0.01f;
         lastMousePosition = getMousePosition();
         this.enabled = true;
+        editableObject.rigidbody.detectCollisions = false;
     }
 
     Vector2 getMousePosition()

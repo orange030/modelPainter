@@ -516,6 +516,24 @@ public class GameResourceManager:MonoBehaviour
 
     public string fullPath;
 
+    public string backupFolder;
+    [ContextMenu("backup")]
+    public void backupSceneFile()
+    {
+        if (!Directory.Exists(backupFolder))
+            Directory.CreateDirectory(backupFolder);
+        var lSceneFileName = System.DateTime.Now.ToString("yyyyMMddhhmmss") + "." + sceneFileName;
+        var lSceneSave = zzSerializeString.Singleton.pack(serializeScene.serializeTo());
+        using (var lSceneFile = new FileStream(backupFolder + "/" + lSceneFileName,
+            FileMode.Create))
+        {
+            //print(lSceneSave);
+            StreamWriter lStreamWriter = new StreamWriter(lSceneFile);
+            lStreamWriter.AutoFlush = true;
+            lStreamWriter.Write(lSceneSave);
+        }
+    }
+
     [ContextMenu("save")]
     public void save()
     {
