@@ -157,10 +157,13 @@ public class SceneModelReader:SceneReader<PaintingModelData>
     public PaintingModelData readData(string pFullName)
     {
         PaintingModelData lOut;
-        using (var lFile = new FileStream(pFullName, FileMode.Open))
+        using (var lFile = new FileStream(pFullName, FileMode.Open,
+            FileAccess.Read, FileShare.Read))
         {
-            StreamReader lStreamReader = new StreamReader(lFile);
-            lOut = PaintingModelData.createDataFromString(lStreamReader.ReadToEnd());
+            using (var lStreamReader = new StreamReader(lFile))
+            {
+                lOut = PaintingModelData.createDataFromString(lStreamReader.ReadToEnd());
+            }
         }
         return lOut;
     }
@@ -188,9 +191,11 @@ public class SceneModelWriter:SceneWriter<PaintingModelData>
     {
         using (var lFile = new FileStream(pName + ".pmb", FileMode.Create))
         {
-            StreamWriter lWriter = new StreamWriter(lFile);
-            lWriter.AutoFlush = true;
-            lWriter.Write(pData.serializeToString());
+            using(StreamWriter lWriter = new StreamWriter(lFile))
+            {
+                lWriter.AutoFlush = true;
+                lWriter.Write(pData.serializeToString());
+            }
         }
     }
 }
@@ -213,10 +218,13 @@ public class SceneImageReader : SceneReader<Texture2D>
     public Texture2D readData(string pFullName)
     {
         Texture2D lOut = new Texture2D(4, 4, TextureFormat.ARGB32, false);
-        using (var lFile = new FileStream(pFullName, FileMode.Open))
+        using (var lFile = new FileStream(pFullName, FileMode.Open,
+            FileAccess.Read, FileShare.Read))
         {
-            BinaryReader lBinaryReader = new BinaryReader(lFile);
-            lOut.LoadImage(lBinaryReader.ReadBytes((int)lFile.Length));
+            using(BinaryReader lBinaryReader = new BinaryReader(lFile))
+            {
+                lOut.LoadImage(lBinaryReader.ReadBytes((int)lFile.Length));
+            }
         }
         if (compress)
             lOut.Compress(true);
@@ -292,8 +300,10 @@ public class SceneImageWriter : SceneWriter<Texture2D>
     {
         using (var lFile = new FileStream(pName+".png", FileMode.Create))
         {
-            BinaryWriter lWriter = new BinaryWriter(lFile);
-            lWriter.Write(pData.EncodeToPNG());
+            using(BinaryWriter lWriter = new BinaryWriter(lFile))
+            {
+                lWriter.Write(pData.EncodeToPNG());
+            }
         }
     }
 

@@ -177,7 +177,7 @@ public class ImageModelCreator:MonoBehaviour
             toModelData(modelPainterProcessor.models.transform,nowPainterOutData);
 
             modelPainterControl.clear();
-            Destroy(drawTimer);
+            //Destroy(drawTimer);
             createObject(nowPainterOutData);
         }
     }

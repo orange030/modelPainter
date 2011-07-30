@@ -171,7 +171,7 @@ public class PaintingMesh : zzEditableObject
 
     public static PaintingMesh create(GameObject lObject, GenericResource<PaintingModelData> pResource)
     {
-        PaintingMesh lOut = create(lObject, pResource.resource);
+        PaintingMesh lOut = lObject.GetComponent<PaintingMesh>();
         lOut.modelResource = pResource;
         return lOut;
     }
