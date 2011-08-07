@@ -26,6 +26,14 @@ public class RenderMaterialResourceInfo : GenericResourceInfo
     {
         get { return (GenericResource<Texture2D>)this; }
     }
+
+    public static Material exceptionMaterial
+    {
+        get
+        {
+            return GameSystem.Singleton.getRenderMaterial(0).material;
+        }
+    }
 }
 
 [System.Serializable]

@@ -77,11 +77,16 @@ public class PaintingModelData
     static public Mesh  createMeshFromTable(Hashtable pData,Vector2 pPictureSize)
     {
         Mesh lOut = new Mesh();
-        lOut.vertices = (Vector3[])pData["vertices"];
+        var lVertices = (Vector3[])pData["vertices"];
+        lOut.vertices = lVertices;
         lOut.triangles = (int[])pData["triangles"];
         lOut.uv = zzFlatMeshUtility.verticesCoordToUV(lOut.vertices,
             zzFlatMeshUtility.getUvScaleFromImgSize(pPictureSize));
-        lOut.normals = zzFlatMeshUtility.getNormals(lOut.vertices.Length);
+        if(lVertices.Length>0
+            && lVertices[0].z == lVertices[lVertices.Length - 1].z)
+            lOut.normals = zzFlatMeshUtility.getSingleFaceNormals(lOut.vertices.Length);
+        else
+            lOut.normals = zzFlatMeshUtility.getNormals(lOut.vertices.Length);
         return lOut;
     }
 

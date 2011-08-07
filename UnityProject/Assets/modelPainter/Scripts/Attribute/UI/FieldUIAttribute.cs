@@ -27,74 +27,102 @@ public class FieldUIAttribute:UiAttributeBase
         return GUILayout.TextField(text, maxLength);
     }
 
-    public bool isFloat(string pText)
-    {
-        bool lOut = false;
-        try
-        {
-            float.Parse(pText);
-            lOut = true;
-        }
-        catch{}
-        return lOut;
-    }
+    //public bool isFloat(string pText)
+    //{
+    //    bool lOut = false;
+    //    try
+    //    {
+    //        float.Parse(pText);
+    //        lOut = true;
+    //    }
+    //    catch{}
+    //    return lOut;
+    //}
 
     public void intField(object pObject, PropertyInfo pPropertyInfo)
     {
         int lPreValue = (int)pPropertyInfo.GetValue(pObject, null);
 
-        string lPreText;
-        if (stringBuffer != null)
-        {
-            lPreText = stringBuffer;
-        }
+        //string lPreText;
+        //if (stringBuffer != null)
+        //{
+        //    lPreText = stringBuffer;
+        //}
+        //else
+        //{
+        //    lPreText = lPreValue.ToString();
+        //}
+        int lNewValue;
+        string lNewText = TextField(lPreValue.ToString(), 8);
+        if (lNewText.Length == 0)
+            lNewValue = 0;
         else
-        {
-            lPreText = lPreValue.ToString();
-        }
+            int.TryParse(lNewText, out lNewValue);
 
-        string lNewText = TextField(lPreText, 8);
-        if (lPreText != lNewText)
-        {
-            try
-            {
-                pPropertyInfo.SetValue(pObject, System.Int32.Parse(lNewText), null);
-                stringBuffer = null;
-            }
-            catch (System.Exception e)
-            {
-                stringBuffer = lNewText;
-            }
-        }
+
+        if (lNewValue != lPreValue)
+            pPropertyInfo.SetValue(pObject, lNewValue, null);
+        //if (lPreText != lNewText)
+        //{
+        //    try
+        //    {
+        //        pPropertyInfo.SetValue(pObject, System.Int32.Parse(lNewText), null);
+        //        stringBuffer = null;
+        //    }
+        //    catch (System.Exception e)
+        //    {
+        //        stringBuffer = lNewText;
+        //    }
+        //}
     }
 
     public void floatField(object pObject, PropertyInfo pPropertyInfo)
     {
         float lPreValue = (float)pPropertyInfo.GetValue(pObject, null);
 
-        string lPreText;
-        if(stringBuffer!=null)
-        {
-            lPreText = stringBuffer;
-        }
-        else
-        {
-            lPreText = lPreValue.ToString();
-        }
-
+        string lPreText = zzGUIUtilities.toString(lPreValue);
+        //if(stringBuffer!=null)
+        //{
+        //    lPreText = stringBuffer;
+        //}
+        //else
+        //{
+        //    lPreText = lPreValue.ToString();
+        //}
+        float lNewValue;
         string lNewText = TextField(lPreText, 8);
-        if(lPreText!=lNewText)
-        {
-            try
-            {
-                pPropertyInfo.SetValue(pObject, float.Parse(lNewText), null);
-                stringBuffer = null;
-            }
-            catch (System.Exception e)
-            {
-                stringBuffer = lNewText;
-            }
-        }
+        //if (lNewText.Length == 0)
+        //    lNewValue = 0f;
+        //else
+        //{
+        //    var lNums = lNewText.Split('.');
+        //    if (lNums.Length>2)
+        //    {
+        //        lNewText = lNums[0] + "." + lNums[1];
+        //        for (int i = 2; i<lNums.Length;++i )
+        //        {
+        //            lNewText += lNums[i];
+        //        }
+        //    }
+        //    float.TryParse(lNewText, out lNewValue);
+        //}
+
+
+        if (zzGUIUtilities.stringToFloat(lNewText, out lNewValue)
+            &&lNewValue != lPreValue)
+            pPropertyInfo.SetValue(pObject, lNewValue, null);
+        //if(lPreText!=lNewText)
+        //{
+        //    try
+        //    {
+        //        pPropertyInfo.SetValue(pObject, float.Parse(lNewText), null);
+        //        stringBuffer = null;
+        //    }
+        //    catch (System.Exception e)
+        //    {
+        //        stringBuffer = lNewText;
+        //    }
+        //}
 
     }
 

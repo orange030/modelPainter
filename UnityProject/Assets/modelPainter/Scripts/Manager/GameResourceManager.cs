@@ -223,7 +223,13 @@ public class SceneImageReader : SceneReader<Texture2D>
         {
             using(BinaryReader lBinaryReader = new BinaryReader(lFile))
             {
-                lOut.LoadImage(lBinaryReader.ReadBytes((int)lFile.Length));
+                var lMemoryStream = memoryStream;
+                int lFileLength = (int)lFile.Length;
+                lMemoryStream.SetLength(lFileLength);
+                lMemoryStream.Position=0;
+                var lBuffer = lMemoryStream.GetBuffer();
+                lBinaryReader.Read(lBuffer, 0, lFileLength);
+                lOut.LoadImage(lBuffer);
             }
         }
         if (compress)
@@ -237,10 +243,10 @@ public class SceneImageReader : SceneReader<Texture2D>
         using (var lImage = System.Drawing.Image.FromFile(pFullName))
         {
             var lMemoryStream = memoryStream;
-            lImage.Save(lMemoryStream, System.Drawing.Imaging.ImageFormat.Png);
-            lOut.LoadImage(lMemoryStream.GetBuffer());
             lMemoryStream.SetLength(0);
             lMemoryStream.Position = 0;
+            lImage.Save(lMemoryStream, System.Drawing.Imaging.ImageFormat.Png);
+            lOut.LoadImage(lMemoryStream.GetBuffer());
         }
         if (compress)
             lOut.Compress(true);
@@ -380,11 +386,6 @@ public abstract class SceneReader<T>
         return lOut;
     }
 
-    //GenericResource<Texture2D> getImage(string pID)
-    //{
-
-    //}
-    //public void T readData(string pFullName);
 
     public void clear()
     {
@@ -557,9 +558,11 @@ public class GameResourceManager:MonoBehaviour
             FileMode.Create))
         {
             //print(lSceneSave);
-            StreamWriter lStreamWriter = new StreamWriter(lSceneFile);
-            lStreamWriter.AutoFlush = true;
-            lStreamWriter.Write(lSceneSave);
+            using(StreamWriter lStreamWriter = new StreamWriter(lSceneFile))
+            {
+                lStreamWriter.AutoFlush = true;
+                lStreamWriter.Write(lSceneSave);
+            }
         }
         foreach (Transform lObject in serializeScene.enumerateObject)
         {
@@ -594,10 +597,12 @@ public class GameResourceManager:MonoBehaviour
         sceneImageReader.beginReadScene(fullPath);
         string lSceneSave;
         using (var lSceneFile = new FileStream(fullPath + "/" + sceneFileName,
-            FileMode.Open))
+            FileMode.Open, FileAccess.Read, FileShare.Read))
         {
-            StreamReader lStreamReader = new StreamReader(lSceneFile);
-            lSceneSave = lStreamReader.ReadToEnd();
+            using (StreamReader lStreamReader = new StreamReader(lSceneFile))
+            {
+                lSceneSave = lStreamReader.ReadToEnd();
+            }
         }
         serializeScene.serializeFrom(zzSerializeString.Singleton.unpackToData(lSceneSave));
         sceneModelReader.endReadScene();

@@ -180,10 +180,21 @@ public class RenderMaterialProperty:MonoBehaviour
                 visibleChangedCheck(_imageResource.resourceID);
                 break;
             case ResourceType.realTime:
-                sharedMaterial = GameSystem.Singleton.defaultMaterial;
-                material.mainTexture = _imageResource.resource.resource;
-                //imageResource = GameResourceManager.Main.getImage(_imageResource.resourceID);
-                break;
+                {
+                    try
+                    {
+                        sharedMaterial = GameSystem.Singleton.defaultMaterial;
+                        material.mainTexture = _imageResource.resource.resource;
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError(e);
+                        _imageResource.resourceType = ResourceType.builtin;
+                        _imageResource.resourceID = string.Empty;
+                        sharedMaterial = RenderMaterialResourceInfo.exceptionMaterial;
+                    }
+                    break;
+                }
         }
     }
 

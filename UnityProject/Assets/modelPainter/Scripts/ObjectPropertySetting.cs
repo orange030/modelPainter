@@ -62,6 +62,7 @@ public partial class ObjectPropertySetting:MonoBehaviour
         Hashtable lPropertyData = (Hashtable)pTable["#Property"];
         foreach (DictionaryEntry lDir in lPropertyData)
         {
+            //获取 MonoBehaviour
             var lObject = getObject(lDir.Key as string);
             if (lObject)
             {
